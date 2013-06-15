@@ -68,6 +68,7 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 	btn:SetScript("OnClick", function (s, b, d)
 		obj:hidePlayer(s:GetParent())
 		obj:hideMovingObjects()
+		atroxArenaViewer:stopListening()
 		atroxArenaViewerData.current.listening = ""
 		obj:setOnUpdate("stop")
 	end)
@@ -672,13 +673,29 @@ function AAV_Gui:createMinimapIcon(parent, player)
 	icon:SetTexture("Interface\\Icons\\Spell_Magic_MageArmor")
 	icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 	icon:SetPoint("TOPLEFT", 7, -5)
+
+	local minimapShapes = {
+		["ROUND"] = {true, true, true, true},
+		["SQUARE"] = {false, false, false, false},
+		["CORNER-TOPLEFT"] = {true, false, false, false},
+		["CORNER-TOPRIGHT"] = {false, false, true, false},
+		["CORNER-BOTTOMLEFT"] = {false, true, false, false},
+		["CORNER-BOTTOMRIGHT"] = {false, false, false, true},
+		["SIDE-LEFT"] = {true, true, false, false},
+		["SIDE-RIGHT"] = {false, false, true, true},
+		["SIDE-TOP"] = {true, false, true, false},
+		["SIDE-BOTTOM"] = {false, true, false, true},
+		["TRICORNER-TOPLEFT"] = {true, true, true, false},
+		["TRICORNER-TOPRIGHT"] = {true, false, true, true},
+		["TRICORNER-BOTTOMLEFT"] = {true, true, false, true},
+		["TRICORNER-BOTTOMRIGHT"] = {false, true, true, true},
+	}
 	
 	button:SetScript("OnDragStart", function(self, btn)
 		self.dragging = true
 		self:LockHighlight()
 		icon:SetTexCoord(0, 1, 0, 1)
 		self:SetScript('OnUpdate', function(self, btn)
-			
 			local mx, my = Minimap:GetCenter()
 			local px, py = GetCursorPosition()
 			local scale = Minimap:GetEffectiveScale()
@@ -686,14 +703,19 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			local deg = math.deg(math.atan2(py - my, px - mx)) % 360
 			
 			local angle = math.rad(deg)
-			local cos = math.cos(angle)
-			local sin = math.sin(angle)
-			
-			local x = cos*80
-			local y = sin*80
-			
-			self:SetPoint("CENTER", self:GetParent(), x, y)
-			
+			local x, y, q = math.cos(angle), math.sin(angle), 1
+			if x < 0 then q = q + 1 end
+			if y > 0 then q = q + 2 end
+			local minimapShape = GetMinimapShape and GetMinimapShape() or "ROUND"
+			local quadTable = minimapShapes[minimapShape]
+			if quadTable[q] then
+				x, y = x*80, y*80
+			else
+				local diagRadius = 103.13708498985 
+				x = math.max(-80, math.min(x*diagRadius, 80))
+				y = math.max(-80, math.min(y*diagRadius, 80))
+			end
+			self:SetPoint("CENTER", self:GetParent(), "CENTER", x, y)
 			atroxArenaViewerData.defaults.profile.minimapx = x
 			atroxArenaViewerData.defaults.profile.minimapy = y
 		end)
@@ -1074,6 +1096,49 @@ function AAV_Gui:createMinimapIcon(parent, player)
 				info.func = function() 
 					atroxArenaViewerData.defaults.profile.healthdisplay = 3 
 					if (atroxArenaViewer:getPlayer()) then atroxArenaViewer:getPlayer():updateHealthtext() end 
+				end
+				
+				UIDropDownMenu_AddButton(info, level)
+				
+				reset(info)
+				info.notCheckable = true
+				info.notClickable = true
+				info.text = ""
+				
+				UIDropDownMenu_AddButton(info, level)
+				
+				reset(info)
+				info.text = "Communication Method"
+				info.notCheckable = true
+				info.notClickable = true
+				info.hasArrow = false
+				info.func = nil
+				info.r = 0.8901960784313725
+				info.g = 0.5725490196078431
+				info.b = 0.7725490196078431
+				
+				UIDropDownMenu_AddButton(info, level)
+				
+				reset(info)
+				info.text = "Guild"
+				info.notCheckable = false
+				info.notClickable = false
+				info.hasArrow = false
+				info.checked = atroxArenaViewerData.current.communication == "GUILD"
+				info.func = function()
+					atroxArenaViewerData.current.communication = "GUILD"
+				end
+				
+				UIDropDownMenu_AddButton(info, level)
+				
+				reset(info)
+				info.text = "Raid"
+				info.notCheckable = false
+				info.notClickable = false
+				info.hasArrow = false
+				info.checked = atroxArenaViewerData.current.communication == "RAID"
+				info.func = function() 
+					atroxArenaViewerData.current.communication = "RAID"
 				end
 				
 				UIDropDownMenu_AddButton(info, level)

@@ -1,7 +1,8 @@
-﻿local L = LibStub("AceLocale-3.0"):NewLocale("atroxArenaViewer", "ruRU", true)
+local L = LibStub("AceLocale-3.0"):NewLocale("atroxArenaViewer", "ruRU")
 
+if not L then return end
 
-L.ARENA_START					= "Битва на арене началась!"
+L.ARENA_START					= "Битва на Арене началась!"
 L.ARENA_60						= "Одна минута до начала битвы на арене!"
 L.ARENA_45						= "Битва на Арене начнется через 45 секунд!"
 L.ARENA_30						= "Битва на Арене начнется через 30 секунд!"
@@ -26,6 +27,7 @@ L.CONF_HELP_LINE4				= "record - будет ли записана игра."
 L.CONF_HELP_LINE5				= "broadcast - включить/выключить трансляцию."
 L.CONF_HELP_LINE6				= "lookup - отображает все доступные трансляции."
 L.CONF_HELP_LINE7				= "connect [name] - подключается к трансляции с заданным именем."
+L.CONF_HELP_LINE8				= "spectators - lists all connected spectators."
 
 L.STATUS						= "Статус"
 L.STATUS_IDLE					= "Бездействие"
@@ -51,7 +53,7 @@ L.CONNECT_WAITING_DATA			= "Ожидание данных арены."
 L.ARENA_NAGRAND					= "Арена Награнда"
 L.ARENA_LORDAERON				= "Руины Лордерона"
 L.ARENA_BLADEEDGE				= "Арена Острогорья"
-L.ARENA_DALARAN					= "Стоки Даларана"
+L.ARENA_DALARAN					= "Арена Даларана"
 L.ARENA_VALOR					= "Арена Доблести"
 
 L.DETAIL_DAMAGEDONE				= "Нанесено\nурона"

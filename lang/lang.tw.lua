@@ -1,5 +1,6 @@
-﻿local L = LibStub("AceLocale-3.0"):NewLocale("atroxArenaViewer", "zhTW", true)
+local L = LibStub("AceLocale-3.0"):NewLocale("atroxArenaViewer", "zhTW")
 
+if not L then return end
 
 L.ARENA_START					= "竞技场战斗现在开始！"
 L.ARENA_60						= "竞技场战斗将在一分钟后开始！"
@@ -26,6 +27,7 @@ L.CONF_HELP_LINE4				= "record — 是否记录比赛"
 L.CONF_HELP_LINE5				= "broadcast — 启用/禁用广播"
 L.CONF_HELP_LINE6				= "lookup — 列出所有可用广播"
 L.CONF_HELP_LINE7				= "connect [名称] — 连接到指定名称的广播"
+L.CONF_HELP_LINE8				= "spectators - lists all connected spectators."
 
 L.STATUS						= "状态"
 L.STATUS_IDLE					= "空闲"

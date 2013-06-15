@@ -1,5 +1,4 @@
-﻿
-local L = LibStub("AceLocale-3.0"):NewLocale("atroxArenaViewer", "koKR")
+﻿local L = LibStub("AceLocale-3.0"):NewLocale("atroxArenaViewer", "koKR")
 
 if not L then return end
 
@@ -28,6 +27,7 @@ L.CONF_HELP_LINE4				= "기록 - 여부 일치도 기록되지 않습니다."
 L.CONF_HELP_LINE5				= "방송 - 또는 비활성화 방송 활성화하십시오."
 L.CONF_HELP_LINE6				= "조회 - 사용 가능한 모든 방송을 나열합니다."
 L.CONF_HELP_LINE7				= "연결 [이름] - 는 주어진 이름으로 방송에 연결됩니다."
+L.CONF_HELP_LINE8				= "spectators - lists all connected spectators."
 
 L.STATUS						= "상태"
 L.STATUS_IDLE					= "휴식중"

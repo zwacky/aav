@@ -1,4 +1,5 @@
-﻿local L = LibStub("AceLocale-3.0"):NewLocale("atroxArenaViewer", "enGB", true)
+local L = LibStub("AceLocale-3.0"):NewLocale("atroxArenaViewer", "enGB", true)
+
 
 
 L.ARENA_START					= "The Arena battle has begun!"
@@ -26,6 +27,7 @@ L.CONF_HELP_LINE4				= "record - whether a match will be recorded."
 L.CONF_HELP_LINE5				= "broadcast - enable/disable broadcasting."
 L.CONF_HELP_LINE6				= "lookup - lists all available broadcasts."
 L.CONF_HELP_LINE7				= "connect [name] - connects to the broadcast with the given name."
+L.CONF_HELP_LINE8				= "spectators - lists all connected spectators."
 
 L.STATUS						= "Status"
 L.STATUS_IDLE					= "Idle"

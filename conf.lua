@@ -21,7 +21,16 @@ SlashCmdList["ATROXARENAVIEWER"] = function(msg)
 	elseif (string.find(msg, 'connect%s%d*')) then
 		local name = string.sub(msg, 9)
 		atroxArenaViewer:connectToBroadcast(name)
-		
+			
+	elseif (msg == "spectators") then
+	
+		print("|cffe392c5<AAV>|r current spectators (total: " .. #atroxArenaViewer:getSpectators() .. ")")
+		if (#atroxArenaViewer:getSpectators() > 0) then
+			for k,v in pairs(atroxArenaViewer:getSpectators()) do
+				print("- " .. v)
+			end
+		end
+	
 	elseif (msg == "record") then
 		
 		self:changeRecording()

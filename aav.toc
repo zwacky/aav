@@ -15,8 +15,12 @@ lib\AceLocale-3.0\AceLocale-3.0.xml
 lib\AceSerializer-3.0\AceSerializer-3.0.xml
 
 lang\lang.en.lua
+lang\lang.cn.lua
 lang\lang.de.lua
 lang\lang.kr.lua
+lang\lang.ru.lua
+lang\lang.tw.lua
+lang\lang.fr.lua
 
 aav.lua
 conf.lua
