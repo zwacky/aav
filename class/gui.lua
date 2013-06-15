@@ -10,13 +10,13 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 		return
 	end
 	
-	local o = CreateFrame("Frame", "Root", UIParent)
+	local o = CreateFrame("Frame", "AAVRoot", UIParent)
 	o:SetFrameStrata("HIGH")
 	o:SetWidth(560)
 	o:SetPoint("Center", 0, 0)
 	self:setPlayerFrameSize(o, bracket)
 	
-	local f = CreateFrame("Frame", "Player", o)
+	local f = CreateFrame("Frame", "$parentPlayer", o)
 	f:SetFrameStrata("HIGH")
 	f:SetWidth(560)
 	f:SetPoint("TOPLEFT", o, "TOPLEFT", 0, 0)
@@ -53,6 +53,16 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 	mt:SetPoint("CENTER", m, 0, 0)
 	mt:Show()
 	
+	
+	local l = CreateFrame("STATUSBAR", "$parentLoading", o)
+	l:SetWidth(150)
+	l:SetPoint("CENTER", o:GetName(), 0, 0)
+	l:SetStatusBarTexture("Interface\\Addons\\aav\\res\\" .. atroxArenaViewerData.defaults.profile.hpbartexture .. ".tga")
+	l:SetHeight(30)
+	l:SetMinMaxValues(0, 100)
+	l:SetValue(50)
+	l:Show()
+	
 	--m:SetWidth(mt:GetStringWidth() + 25)
 	
 	
@@ -74,7 +84,7 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 	end)
 	btn:Show()
 	
-	return o, f, mt
+	return o, f, mt, l
 end
 
 function AAV_Gui:setPlayerFrameSize(frame, bracket)
@@ -276,7 +286,7 @@ function AAV_Gui:createSeekerBar(parent, elapsed)
 	f.texture = t
 	
 	--c:SetAllPoints(parent)
-	f:SetPoint("BOTTOMLEFT", parent:GetName(), 25, 50)
+	f:SetPoint("BOTTOMLEFT", parent, 25, 50)
 	f:Show()
 	
 	
@@ -1208,10 +1218,15 @@ function AAV_Gui:createMinimapIcon(parent, player)
 							reset(info)
 							local mapname = ""
 							if (type(atroxArenaViewerData.data[j]["map"])=="number") then
-								mapname = AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]
+								if (AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]) then
+									mapname = AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]
+								else
+									mapname = "Unknown"
+								end
 							else
 								mapname = atroxArenaViewerData.data[j]["map"]
 							end
+							if (mapname == nil) then print(atroxArenaViewerData.data[j]["map"]) end
 							info.text = j .. " - " .. mapname .. " (" .. atroxArenaViewerData.data[j]["startTime"] .. ")"
 							info.notCheckable = true
 							info.notClickable = false
@@ -1240,7 +1255,11 @@ function AAV_Gui:createMinimapIcon(parent, player)
 							reset(info)
 							local mapname = ""
 							if (type(atroxArenaViewerData.data[j]["map"])=="number") then
-								mapname = AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]
+								if (AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]) then
+									mapname = AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]
+								else
+									mapname = "Unknown"
+								end
 							else
 								mapname = atroxArenaViewerData.data[j]["map"]
 							end
@@ -1258,7 +1277,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 						info.notCheckable = true
 						info.notClickable = false
 						info.hasArrow = false
-						info.func = function() for k=(i-1*20)+1,(i-1*20)+1+20 do parent:deleteMatch((i-1*20)+1) end end
+						info.func = function() for k=((i-1)*20)+1,((i-1)*20)+20 do parent:deleteMatch(k) end end
 						
 						UIDropDownMenu_AddButton(info, level)
 					else

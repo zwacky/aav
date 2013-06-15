@@ -11,6 +11,8 @@ function AAV_PlayStub:new()
 	self.data = nil
 	self.seeker = nil
 	self.player = nil
+	self.maptext = nil
+	self.loading = nil
 	self.tick = 1
 	self.pool = {}
 	self.pool.list = {}
@@ -29,6 +31,14 @@ function AAV_PlayStub:new()
 	self.matchTime = 0
 	self.viewdetail = true
 	self.cclist = {} -- used for preventing multiple ccs on same icon
+	self.indexCycle = CreateFrame("FRAME") -- used for splitted index creation
+	self.cycleTime = 0.0333 -- duration how much time is used for each frame (30 fps)
+	self.currentCycle = 0 -- index id of data
+	self.calc = {}
+	self.calc.buff = {}
+	self.calc.debuff = {}
+	self.calc.cc = {}
+	self.calc.cd = {}
 	
 	----
 	-- these skills won't be shown.
@@ -429,7 +439,6 @@ end
 function AAV_PlayStub:handleTimer(value)
 	if (value == "stop" and atroxArenaViewer:TimeLeft(timer)) then
 		atroxArenaViewer:CancelTimer(timer)
-	
 		timer = nil
 	elseif (value == "start" and not atroxArenaViewer:TimeLeft(timer)) then
 		timer = atroxArenaViewer:ScheduleRepeatingTimer("evaluateMatchData", atroxArenaViewerData.defaults.profile.update)
@@ -726,16 +735,32 @@ function AAV_PlayStub:removeAllAuras(id)
 end
 
 ----
+-- returns the current bracket size according to the dudes data.
+-- @return bracket size
+function AAV_PlayStub:getCurrentBracket()
+	local bracket = 0
+	if (self.data and self.data.combatans and self.data.combatans.dudes) then
+		for k,v in pairs(self.data.combatans.dudes) do
+			if (v.player == 1 and v.team == 1) then
+				bracket = bracket + 1
+			end
+		end
+	end
+	return bracket
+end
+
+----
 -- creates or take existing gui elements.
 -- @param num match id
 -- @param elapsed time
 -- @param broadcast true = watches a broadcasts, false = local playing
 function AAV_PlayStub:createPlayer(bracket, elapsed, broadcast)
-
+	
 	if (not self.player) then 
-		self.origin, self.player, self.maptext = AAV_Gui:createPlayerFrame(self, bracket)
+		self.origin, self.player, self.maptext, self.loading = AAV_Gui:createPlayerFrame(self, bracket)
 		self.detail = AAV_Gui:createButtonDetail(self.origin)
 		self.seeker = {}
+		
 		self.seeker.bar, self.seeker.back, self.seeker.slide, self.seeker.speedval, self.seeker.speed = AAV_Gui:createSeekerBar(self.player, elapsed)
 		self.seeker.status = AAV_Gui:createStatusText(self.origin)
 		self.seeker.tick = AAV_Gui:createSeekerText(self.seeker.bar)
@@ -784,31 +809,55 @@ function AAV_PlayStub:createPlayer(bracket, elapsed, broadcast)
 		AAV_Gui:setPlayerFrameSize(self.origin, bracket)
 		
 	end
+
 	self.origin:Show()
-	self.player:Show()
 	
 	self.stats:Hide()
 	self.viewdetail = true
+	
 	for k,v in pairs(self.pool.stats) do
 		v:hideAll()
 	end
 
 	if (not broadcast) then
 		self:newEntities(self.player)
-		self:createIndex()
+		self:handleIndexCreation("start")
 		self:setSeekerTooltip()
 		self.detail:Show()
 		
-		
 		self:createStats(self:getMatch()["teams"], self:getMatch()["combatans"]["dudes"], bracket)
-		
-		
 		
 	else
 		self.detail:Hide()
+		self.loading:Hide()
+		self.player:Show()
 		
 	end
 	
+	-- self.player:Show()
+
+	
+end
+
+----
+-- handles the function of the index creation frame, that is used for
+-- splitting the index calculation process in several frames.
+-- @param val "start" or "stop"
+function AAV_PlayStub:handleIndexCreation(val)
+	
+	if (val == "start") then
+		currentCycle = 1
+		--self:createIndex()
+		self.loading:Show()
+		self.indexCycle:SetScript("OnUpdate", function()
+			self:createIndexCycle()
+		end)
+		
+	elseif (val == "stop") then
+		self.indexCycle:SetScript("OnUpdate", function() end)
+		self:handleTimer("start")
+		self.loading:Hide()
+	end
 end
 
 function AAV_PlayStub:createStats(teamdata, matchdata, bracket)
@@ -963,12 +1012,27 @@ function AAV_PlayStub:createIndex()
 			end
 		end
 	end
-	
+
+end
+
+function AAV_PlayStub:createIndexCycle()
+
 	local id, event, i, j, lastticktime = 0, 0, 0, 0, 0
-	local buff, debuff, cc, cd = {}, {}, {}, {}
+	local k, v, time = 0, 0, GetTime()
+	
+	-- resetting buff, debuff, cc and cd tables
+	for k,v in pairs(self.calc) do
+		wipe(v)
+	end
+	
 	--local resetcc = function(c) for k,v in pairs(c) do c.k = nil end end
 	--print(#self.data.data)
-	for k,v in pairs(self.data.data) do
+	
+	while (self.data.data[currentCycle] and (GetTime() - time < self.cycleTime)) do
+	--for k,v in pairs(self.data.data) do
+		k = currentCycle
+		v = self.data.data[currentCycle]
+	
 		if (v) then
 			s = AAV_Util:split(v, ',')
 			id = tonumber(s[3])
@@ -977,81 +1041,73 @@ function AAV_PlayStub:createIndex()
 			--resetcc(cc)
 			if (not self.index[id]) then self.index[id] = {} end
 			
-			--[[
-			if (cc[id]) then
-				for c,w in pairs(cc[id]) do
-					print(k .. " - " .. c .. ":" .. w)
-				end
-			end
-			--]]
-			
 			-- index only hp related events
 			if (event == 1 or event == 2) then
 				if (not self.index[id][k]) then self.index[id][k] = {} end -- c = tick
 				self.index[id][k][event] = tonumber(s[4]) -- s[2] = event, s[4] = value
 			
 			elseif (event == 0) then
-				if (not buff[id]) then buff[id] = {} end
+				if (not self.calc.buff[id]) then self.calc.buff[id] = {} end
 				local bf = AAV_Util:split(s[6], ";")
 				if (bf) then
-					buff[id] = {}
-					table.foreach(bf, function(a,b) table.insert(buff[id], tonumber(b)) end)
+					self.calc.buff[id] = {}
+					table.foreach(bf, function(a,b) table.insert(self.calc.buff[id], tonumber(b)) end)
 				end
 				
-				if (not debuff[id]) then debuff[id] = {} end
+				if (not self.calc.debuff[id]) then self.calc.debuff[id] = {} end
 				local df = AAV_Util:split(s[7], ";")
 				if (df) then
-					debuff[id] = {}
-					table.foreach(df, function(a,b) table.insert(debuff[id], tonumber(b)) end)
+					self.calc.debuff[id] = {}
+					table.foreach(df, function(a,b) table.insert(self.calc.debuff[id], tonumber(b)) end)
 				end
 			
 			elseif (event == 10) then
-				if (not cd[id]) then cd[id] = {} end
+				if (not self.calc.cd[id]) then self.calc.cd[id] = {} end
 				if (tonumber(s[6]) and AAV_CCSKILS[tonumber(s[5])]) then
-					cd[id][tonumber(s[5])] = AAV_CCSKILS[tonumber(s[5])]
+					self.calc.cd[id][tonumber(s[5])] = AAV_CCSKILS[tonumber(s[5])]
 				end
 				
 			elseif (event == 13) then
 			
 				-- buff
 				if (tonumber(s[5]) == 1) then
-					if (not buff[id]) then buff[id] = {} end
-					table.insert(buff[id], tonumber(s[4]))
+					if (not self.calc.buff[id]) then self.calc.buff[id] = {} end
+					table.insert(self.calc.buff[id], tonumber(s[4]))
 					
 				-- debuff
 				elseif (tonumber(s[5]) == 2) then
-					if (not debuff[id]) then debuff[id] = {} end
-					table.insert(debuff[id], tonumber(s[4]))
+					if (not self.calc.debuff[id]) then self.calc.debuff[id] = {} end
+					table.insert(self.calc.debuff[id], tonumber(s[4]))
 				end
 				
 				if ((tonumber(s[5]) == 1 or tonumber(s[5]) == 2) and tonumber(s[6]) > 0) then
-					if (not cc[id]) then cc[id] = {} end
-					cc[id][tonumber(s[4])] = tonumber(s[6])
+					if (not self.calc.cc[id]) then self.calc.cc[id] = {} end
+					self.calc.cc[id][tonumber(s[4])] = tonumber(s[6])
 				end
 			elseif (event == 14) then
 			
 				-- buff
-				if (tonumber(s[5]) == 1) then
-					for c,w in pairs(buff[id]) do
+				if (tonumber(s[5]) == 1 and self.calc.buff[id]) then
+					for c,w in pairs(self.calc.buff[id]) do
 						if (tonumber(s[4]) == w) then
-							table.remove(buff[id], c)
+							table.remove(self.calc.buff[id], c)
 							break
 						end
 					end
 					
 				-- debuff
-				elseif (tonumber(s[5]) == 2) then
-					for c,w in pairs(debuff[id]) do
+				elseif (tonumber(s[5]) == 2 and self.calc.debuff[id]) then
+					for c,w in pairs(self.calc.debuff[id]) do
 						if (tonumber(s[4]) == w) then
-							table.remove(debuff[id], c)
+							table.remove(self.calc.debuff[id], c)
 							break
 						end
 					end
 				end
 				
-				if (tonumber(s[5]) == 1 or tonumber(s[5]) == 2) then
-					if (cc[id] and cc[id][tonumber(s[4])]) then
-						cc[id][tonumber(s[4])] = nil
+				if ((tonumber(s[5]) == 1 or tonumber(s[5]) == 2) and self.calc.cc[id]) then
+					if (self.calc.cc[id] and self.calc.cc[id][tonumber(s[4])]) then
+						self.calc.cc[id][tonumber(s[4])] = nil
 					end
 				end
 				
@@ -1069,26 +1125,26 @@ function AAV_PlayStub:createIndex()
 					self.index[id][k] = {} 
 				end
 				
-				if (buff[id] and #buff[id] > 0) then 
-					self.index[id][k]["buff"] = table.concat(buff[id], ',')
+				if (self.calc.buff[id] and #self.calc.buff[id] > 0) then 
+					self.index[id][k]["buff"] = table.concat(self.calc.buff[id], ',')
 				end
 				
-				if (debuff[id] and #debuff[id] > 0) then
-					self.index[id][k]["debuff"] = table.concat(debuff[id], ',')
+				if (self.calc.debuff[id] and #self.calc.debuff[id] > 0) then
+					self.index[id][k]["debuff"] = table.concat(self.calc.debuff[id], ',')
 				end
 				
-				if (cc[id]) then
+				if (self.calc.cc[id]) then
 					local concatcc = ""
-					for c,w in pairs(cc[id]) do
+					for c,w in pairs(self.calc.cc[id]) do
 						concatcc = concatcc .. c .. ":" .. w .. ","
 					end
 					self.index[id][k]["cc"] = concatcc
 					
 				end
 				
-				if (cd[id]) then
+				if (self.calc.cd[id]) then
 					local concatcd = ""
-					for c,w in pairs(cd[id]) do
+					for c,w in pairs(self.calc.cd[id]) do
 						concatcd = concatcd .. c .. ":" .. w .. ","
 					end
 					self.index[id][k]["cd"] = concatcd
@@ -1098,19 +1154,19 @@ function AAV_PlayStub:createIndex()
 				
 			end
 				
-			for c,w in pairs(cc) do
+			for c,w in pairs(self.calc.cc) do
 				if (w) then
 					for d,x in pairs(w) do
 						local t = x - (tonumber(s[1])-lastticktime)
-						cc[c][d] = tonumber(math.floor(t * 10)/10)
+						self.calc.cc[c][d] = tonumber(math.floor(t * 10)/10)
 					end
 				end
 			end
 			
-			for c,w in pairs(cd) do
+			for c,w in pairs(self.calc.cd) do
 				if (w) then
 					for d,x in pairs(w) do
-						cd[c][d] = x - (tonumber(s[1])-lastticktime)
+						self.calc.cd[c][d] = x - (tonumber(s[1])-lastticktime)
 					end
 				end
 			end
@@ -1118,10 +1174,21 @@ function AAV_PlayStub:createIndex()
 			lastticktime = tonumber(s[1])
 			
 		end
+	
+		currentCycle = currentCycle + 1
+	
 	end
-
+	
+	if (not self.data.data[currentCycle]) then
+		self:handleIndexCreation("stop")
+		self.player:Show()
+	end
+	
+	self.loading:SetValue((currentCycle / #self.data.data) * 100)
 
 end
+	
+
 
 ----
 -- returns the last happened value of a passed event.

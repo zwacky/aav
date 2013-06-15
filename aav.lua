@@ -35,8 +35,8 @@ local message = {
 -- GLOBALS
 -------------------------
 AAV_VERSIONMAJOR = 1
-AAV_VERSIONMINOR = 1
-AAV_VERSIONBUGFIX = 6
+AAV_VERSIONMINOR = 2
+AAV_VERSIONBUGFIX = 1
 AAV_UPDATESPEED = 60
 AAV_AURAFULLINDEXSTEP = 1
 AAV_INITOFFTIME = 0.5
@@ -125,6 +125,13 @@ StaticPopupDialogs["AAV_EXPORT_DIALOG"] = {
 	end,
 	timeout = 0,
 	whileDead = true,
+	hideOnEscape = true,
+}
+
+StaticPopupDialogs["AAV_PLAYOLDMATCHES_DIALOG"] = {
+	text = L.ERROR_OLDMATCHES,
+	button1 = "Ok",
+	timeout = 0,
 	hideOnEscape = true,
 }
 
@@ -323,7 +330,7 @@ function atroxArenaViewer:commLookupBroadcast(prefix, msg, dist, sender)
 		
 		if (not T) then return end
 		T.player:Hide()
-		T:createStats(sd.match, sd.dudes, sd.bracket)
+		T:createStats(sd.match, sd.dudes, T:getCurrentBracket())
 		T.stats:Show()
 		
 	elseif (b and sd.event == AAV_COMM_EVENT["cmd_newmatch"] and atroxArenaViewerData.current.listening == sender) then
@@ -335,34 +342,38 @@ function atroxArenaViewer:commLookupBroadcast(prefix, msg, dist, sender)
 		T:resetDudeData()
 		T:removeAllCC()
 		T:removeAllCooldowns()
-		T:createPlayer(sd.bracket, 1, true)
+		T:createPlayer(T:getCurrentBracket(), 1, true)
 		--T:setMapText(sender .. ": " .. AAV_COMM_MAP[sd.map])
 		T:handleSeeker("hide")
 		T:setOnUpdate("start")
 	
 	elseif (b and sd.event == AAV_COMM_EVENT["cmd_updateplayer"] and atroxArenaViewerData.current.listening == sender) then
 	-- UPDATE PLAYER
-		AAV_Gui:setPlayerFrameSize(T.player, sd.bracket)
+	
 		T:addDudeData(sd.guid, sd.dude)
+		AAV_Gui:setPlayerFrameSize(T.origin, T:getCurrentBracket())
+		AAV_Gui:setPlayerFrameSize(T.player, T:getCurrentBracket())
 		
 		T:newEntities(T.player) -- redraw
 		
 	elseif (b and sd.event == AAV_COMM_EVENT["cmd_updateallplayers"] and atroxArenaViewerData.current.listening == sender and sd.target == UnitName("player")) then
 	-- UPDATE ALL PLAYERS
 	
-		if (not T) then print("error") return end -- should never happen cough
-		
-		AAV_Gui:setPlayerFrameSize(T.player, sd.bracket)
+		if (not T) then print("Error: PlayerStub not initialized.") return end -- should never happen cough
 		
 		T:hidePlayer(T.player)
 		T:resetDudeData()
-		T:createPlayer(sd.bracket, 1, true)
-		T:setMapText(sender .. ": " .. AAV_COMM_MAPS[sd.map])
-		T:handleSeeker("hide")
 		
 		for k,v in pairs(sd.dudes) do
 			T:addDudeData(k, v)
 		end
+		
+		AAV_Gui:setPlayerFrameSize(T.origin, T:getCurrentBracket())
+		AAV_Gui:setPlayerFrameSize(T.player, T:getCurrentBracket())
+		
+		T:createPlayer(T:getCurrentBracket(), 1, true)
+		T:setMapText(sender .. ": " .. AAV_COMM_MAPS[sd.map])
+		T:handleSeeker("hide")
 		
 		T:setOnUpdate("start")
 		
@@ -465,7 +476,7 @@ function atroxArenaViewer:sendPlayerInfo(key, data)
 	if (atroxArenaViewerData.current.broadcast) then
 		message["dude"] = {
 			event = AAV_COMM_EVENT["cmd_updateplayer"],
-			bracket = self:getCurrentBracket(),
+			--bracket = self:getCurrentBracket(),
 			guid = key,
 			dude = data,
 		}
@@ -479,7 +490,7 @@ function atroxArenaViewer:sendAllPlayerInfo(sender)
 	message["dudes"] = {
 		target = sender,
 		event = AAV_COMM_EVENT["cmd_updateallplayers"],
-		bracket = self:getCurrentBracket(),
+		--bracket = self:getCurrentBracket(),
 		dudes = M:getDudesData(),
 		map = self:getCurrentMapId(),
 	}
@@ -493,7 +504,7 @@ function atroxArenaViewer:sendNewMatchInfo()
 		event = AAV_COMM_EVENT["cmd_newmatch"],
 		target = nil,
 		version = nil,
-		bracket = self:getCurrentBracket(),
+		--bracket = self:getCurrentBracket(),
 		--map = M:getCurrentMap(),
 	}
 	
@@ -546,6 +557,7 @@ end
 function atroxArenaViewer:UPDATE_BATTLEFIELD_STATUS(event, status)
 	
 	if (atroxArenaViewerData.current.broadcast or atroxArenaViewerData.current.record and M) then
+		--[[
 		if (atroxArenaViewerData.current.broadcast and status == 1 and currentstate == 2) then
 		-- unqueue
 			currentstate = 1
@@ -567,6 +579,18 @@ function atroxArenaViewer:UPDATE_BATTLEFIELD_STATUS(event, status)
 			}
 			self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["std"]), self:getCommMethod(), nil)
 			message["std"].state = nil
+		--]]
+		if (atroxArenaViewerData.current.broadcast and status == 1 and currentstate ~= 2) then
+			currentstate = 2
+			message["std"] = {
+				event = AAV_COMM_EVENT["cmd_status"],
+				target = nil,
+				version = nil,
+				state = currentstate,
+			}
+			self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["std"]), self:getCommMethod(), nil)
+			message["std"].state = nil
+			
 		elseif (status == 1 and atroxArenaViewerData.current.inArena) then
 			
 			local found
@@ -597,7 +621,7 @@ function atroxArenaViewer:UPDATE_BATTLEFIELD_STATUS(event, status)
 						event = AAV_COMM_EVENT["cmd_matchend"],
 						match = M:getTeams(),
 						dudes = M:getDudesData(),
-						bracket = self:getCurrentBracket(),
+						--bracket = self:getCurrentBracket(),
 					}
 					self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["stats"]), self:getCommMethod(), nil)
 				end
@@ -630,18 +654,17 @@ function atroxArenaViewer:CHAT_MSG_BG_SYSTEM_NEUTRAL(event, msg)
 		if (atroxArenaViewerData.current.record == true) then
 			atroxArenaViewerData.current.entered = self:getCurrentTime()
 			atroxArenaViewerData.current.time = GetTime()
-			M:setBracket(self:getCurrentBracket())
 			
 			self:sendNewMatchInfo() -- match starts
 			
 			for i = 1, 5 do
 				if (UnitExists("raid" .. i)) then
 					local key, player = M:updateMatchPlayers(1, "raid" .. i)
-					--self:ScheduleTimer("initArenaMatchUnits", AAV_INITOFFTIME, {"raid" .. i, 1})
-					--self:initArenaMatchUnits({"raid" .. i, 1})
 					self:sendPlayerInfo(key, player)
 				end
 			end
+			
+			M:setBracket() -- sets the bracket size according to dudes data
 			
 			self:handleEvents("register")
 			self:handleQueueTimer("start")
@@ -775,7 +798,8 @@ function atroxArenaViewer:handleEvents(val)
 	if (val == "register") then
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		self:RegisterEvent("UNIT_HEALTH")
-		self:RegisterEvent("UNIT_MANA")
+		--self:RegisterEvent("UNIT_MANA") -- deprecated
+		self:RegisterEvent("UNIT_POWER") -- new in 4.0.3
 		self:RegisterEvent("ARENA_OPPONENT_UPDATE")
 		self:RegisterEvent("UPDATE_BATTLEFIELD_SCORE")
 		self:RegisterEvent("UNIT_NAME_UPDATE")
@@ -787,7 +811,8 @@ function atroxArenaViewer:handleEvents(val)
 	elseif (val == "unregister") then
 		self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		self:UnregisterEvent("UNIT_HEALTH")
-		self:UnregisterEvent("UNIT_MANA")
+		--self:UnregisterEvent("UNIT_MANA") -- deprecated
+		self:UnregisterEvent("UNIT_POWER") -- new in 4.0.3
 		self:UnregisterEvent("ARENA_OPPONENT_UPDATE")
 		self:UnregisterEvent("UPDATE_BATTLEFIELD_SCORE")
 		self:UnregisterEvent("UNIT_NAME_UPDATE")
@@ -901,7 +926,12 @@ end
 -- monitors the change of mana in consideration of mana treshold (AAV_MANATRESHOLD).
 -- @param event
 -- @param unit
-function atroxArenaViewer:UNIT_MANA(event, unit)
+-- @param type resource changed (mana, ragem ...)
+--function atroxArenaViewer:UNIT_MANA(event, unit)
+function atroxArenaViewer:UNIT_POWER(event, unit, type)
+	if (type ~= "MANA") then
+		return
+	end
 	
 	local player = M:getDudesData()[UnitGUID(unit)]
 	if (player) then --and (player.mana > (UnitMana(unit)/UnitManaMax(unit))) then
@@ -1032,7 +1062,7 @@ end
 ----
 -- triggered, when an arena match ended (3 times).
 function atroxArenaViewer:UPDATE_BATTLEFIELD_SCORE(event, unit)
-	self:handleEvents("unregister")
+	--self:handleEvents("unregister")
 	
 end
 
@@ -1201,7 +1231,10 @@ function atroxArenaViewer:getNewMatchID()
 	return max + 1
 end
 
+--[[
+-- removed in 4.0.3
 function atroxArenaViewer:getCurrentBracket()
+	currentbracket = nil
 	for i=1,2 do
 		local status, _, _, _, _, teamSize = GetBattlefieldStatus(i)
 		if (status == "active" and teamSize > 0) then
@@ -1211,6 +1244,7 @@ function atroxArenaViewer:getCurrentBracket()
 	end
 	return currentbracket
 end
+--]]
 
 function atroxArenaViewer:getCurrentTime()
 	return date("%m/%d/%y %H:%M:%S")
@@ -1221,7 +1255,10 @@ function atroxArenaViewer:getDiffTime()
 end
 
 
-
+----
+-- creates the player
+-- as of 1.1.7 if bracket isnt available by data it'll be calculated.
+-- @param num data entry
 function atroxArenaViewer:createPlayer(num)
 	local i = 1
 	
@@ -1234,6 +1271,17 @@ function atroxArenaViewer:createPlayer(num)
 	
 	if (not T:getMatchData(1)) then
 		return
+	end
+	
+	
+	-- check if bracket is available
+	if (atroxArenaViewerData.data[num].bracket == nil) then
+		atroxArenaViewerData.data[num].bracket = 0
+		for k,v in pairs(atroxArenaViewerData.data[num].combatans.dudes) do
+			if (v.player == 1 and v.team == 1) then
+				atroxArenaViewerData.data[num].bracket = atroxArenaViewerData.data[num].bracket + 1
+			end
+		end
 	end
 	
 	T:createPlayer(atroxArenaViewerData.data[num].bracket, atroxArenaViewerData.data[num].elapsed, false)
@@ -1347,7 +1395,16 @@ function atroxArenaViewer:playMatch(num)
 		T:setTickTime(tonumber(pre[1]))
 		T:setMapText(T:getMatch()["map"])
 		
-		T:handleTimer("start")
+		-- check if older matches
+		local vmajor, vminor, vbugfix = strsplit(".", T:getMatch()["version"])
+		vmajor = tonumber(vmajor)
+		vminor = tonumber(vminor)
+		vbugfix = tonumber(vbugfix)
+		if ((vmajor < AAV_VERSIONMAJOR) or (vmajor == AAV_VERSIONMAJOR and vminor < AAV_VERSIONMINOR) or (vmajor == AAV_VERSIONMAJOR and vminor == AAV_VERSIONMINOR and vbugfix < AAV_VERSIONBUGFIX)) then
+			StaticPopup_Show("AAV_PLAYOLDMATCHES_DIALOG")
+		end
+		
+		--T:handleTimer("start")
 	else
 		print("Error - bad match data.")
 	end

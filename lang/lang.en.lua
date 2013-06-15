@@ -61,3 +61,5 @@ L.DETAIL_HIGHDAMAGE				= "Highest\nDamage"
 L.DETAIL_HEALDONE				= "Healing\nDone"
 L.DETAIL_RATING					= "Rating"
 L.DETAIL_MMR					= "MMR"
+
+L.ERROR_OLDMATCHES				= "You may encounter issues while playing older games (old SpellIds, etc.)!"

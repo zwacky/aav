@@ -61,3 +61,5 @@ L.DETAIL_HIGHDAMAGE				= "最高\n伤害"
 L.DETAIL_HEALDONE				= "\n治疗"
 L.DETAIL_RATING					= "等级"
 L.DETAIL_MMR					= "配对等级"
+
+L.ERROR_OLDMATCHES				= "You may encounter issues while playing older games (old SpellIds, etc.)!"

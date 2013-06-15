@@ -54,10 +54,12 @@ L.ARENA_NAGRAND					= "Arène de Nagrand"
 L.ARENA_LORDAERON				= "Ruines de Lordaeron"
 L.ARENA_BLADEEDGE				= "Arène des Tranchantes"
 L.ARENA_DALARAN					= "Arène de Dalaran"
-L.ARENA_VALOR					= "L'arène des valeureux"
+L.ARENA_VALOR					= "L'Arène des valeureux"
 
 L.DETAIL_DAMAGEDONE				= "Dégâts\ninfligés"
 L.DETAIL_HIGHDAMAGE				= "Plus haut\ndégât"
 L.DETAIL_HEALDONE				= "Soins\nprodigués"
 L.DETAIL_RATING					= "Côte"
 L.DETAIL_MMR					= "MMR"
+
+L.ERROR_OLDMATCHES				= "You may encounter issues while playing older games (old SpellIds, etc.)!"

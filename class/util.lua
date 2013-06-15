@@ -25,6 +25,7 @@ AAV_IMPORTANTSKILLS = {
 	[61025] = 3,	-- Polymorph serpent
 	[51514]	= 3,	-- Hex
 	[18647]	= 3,	-- Banish
+	[76577] = 3,	-- Smoke Bomb
 	
 	-- Roots
 	[53308] = 3, 	-- Entangling Roots
@@ -32,6 +33,8 @@ AAV_IMPORTANTSKILLS = {
 	[42917]	= 3,	-- Frost Nova
 	[16979] = 3, 	-- Feral Charge
 	[13809] = 1, 	-- Frost Trap
+	[87194] = 3,	-- Paralysis
+	[91802] = 3,	-- Shambling Rush
 	
 	-- Stuns and incapacitates
 	[8983] 	= 3, 	-- Bash
@@ -48,6 +51,13 @@ AAV_IMPORTANTSKILLS = {
 	[46968] = 3, 	-- Shockwave
 	[49203] = 3,	-- Hungering Cold
 	[47481]	= 3,	-- Gnaw (dk pet stun)
+	[91797] = 3,	-- Monstrous Blow (dk pet stun 2)
+	[88625] = 3,	-- Chastise
+	[89766] = 3,	-- Axe Toss
+	[54786] = 3,	-- Demon Leap
+	[85388] = 3,	-- Throwdown
+	[82691] = 3,	-- Ring of Frost
+	[90337] = 3,	-- Bad Manner (Hunter Pet Stun)
 	
 	-- Silences
 	[18469] = 1,	-- Improved Counterspell
@@ -69,7 +79,6 @@ AAV_IMPORTANTSKILLS = {
 	[32182] = 1, 	-- Heroism
 	[33206] = 1, 	-- Pain Suppression
 	[29166] = 1,	-- Innervate
-	[18708]  = 1,	-- Fel Domination
 	[54428]	= 1,	-- Divine Plea
 	[31821]	= 1,	-- Aura mastery
 	
@@ -111,6 +120,8 @@ AAV_CCSKILS = {
 	[12975]	= 180,	-- Last Stand
 	[12809]	= 30,	-- Concussion Blow
 	[46968]	= 20,	-- Shockwave
+	[85730] = 120,	-- Deadly Calm
+	[85388] = 45,	-- Throwdown
 
 	-- Priest
 	[586]	= 30,	-- Fade
@@ -129,6 +140,9 @@ AAV_CCSKILS = {
 	[47585]	= 75,	-- Dispersion
 	[15487]	= 45,	-- Silence
 	[64044]	= 120,	-- Psychic Horror
+	[88625] = 25,	-- Chastise
+	[73325] = 90,	-- Leap of Faith
+	[62618] = 120,	-- Power Word: Barrier
 	
 	-- DRUID
 	[61336]	= 180,	-- Survival Instincts
@@ -138,7 +152,6 @@ AAV_CCSKILS = {
 	[17116]	= 180,	-- Nature's Swiftness
 	[8983]	= 60,	-- Bash
 	[22842]	= 180,	-- Frenzied Regeneration
-	[16979]	= 15,	-- Feral Charge - Bear
 	[29166]	= 180,	-- Innervate
 	[33357]	= 180,	-- Dash
 	[53201]	= 90,	-- Starfall
@@ -146,21 +159,36 @@ AAV_CCSKILS = {
 	[61384]	= 20,	-- Typhoon
 	[33831]	= 180,	-- Force of Nature
 	[18562]	= 13,	-- Swiftmend
-
+	[80964] = 10,	-- Skull Bash (Bear Form)
+	[80965] = 10,	-- Skull Bash (Cat Form)
+	[77761] = 120,	-- Stampeding Roar (Bear Form)
+	[77764] = 120,	-- Stampeding Roar (Cat Form)
+	[49376] = 28,	-- Feral Charge (Cat Form)
+	[16979] = 14,	-- Feral Charge (Bear Form)
+	[22570] = 10,	-- Maim (Cat Form)
+	[5217]	= 30,	-- Tiger's Fury (Cat Form)
+	[740]	= 480,	-- Tranquility
 
 	-- WARLOCK
 	[17928]	= 40,	-- Howl of Terror
-	[54785]	= 45,	-- Demon Charge
 	[50589]	= 30,	-- Immolation Aura
 	[47860]	= 120,	-- Death Coil
 	[48020]	= 30,	-- Demonic Circle: Teleport
 	[47827]	= 15,	-- Shadowflame
 	[47847]	= 20,	-- Shadowfury
 	[59164]	= 8,	-- Haunt
-	[18708]	= 180,	-- Fel Domination
 	[59672]	= 180,	-- Metamorphosis
 	[17962]	= 10,	-- Conflagrate
 	[59172]	= 12,	-- Chaos Bolt
+	[54785] = 45,	-- Demon Leap
+	[89766] = 30,	-- Axe Toss
+	[71521] = 12,	-- Hand Of Gul'dan
+	[89751] = 45,	-- Felstorm (Felguard Petskill)
+	[74434] = 45,	-- Soulburn
+	[79268] = 30,	-- Soul Harvest
+	[77801] = 120,	-- Demon Soul
+	[86121] = 10,	-- Soul Swap
+	[48020] = 25,	-- Demonic Circle: Teleport
 
 	-- MAGE
 	[12051]	= 240,	-- Evocation
@@ -184,30 +212,30 @@ AAV_CCSKILS = {
 	[31687]	= 144,	-- Summon Water Elemental
 	[11958]	= 384,	-- Cold Snap
 	[12472]	= 144,	-- Icy Veins
+	[82676] = 120,	-- Ring of Frost
+	[80353] = 300,	-- Time Warp
 	
 	-- PALADIN
-	[498] 	= 180, 	-- Divine Protection
-	[64205] = 120, 	-- Divine Sacrifice
-	[53408] = 10, 	-- Judgement of Wisdom
+	[498] 	= 60, 	-- Divine Protection
 	[20271] = 10, 	-- Judgement of Light
 	[1044] 	= 25, 	-- Hand of Freedom
 	[1038] 	= 120, 	-- Hand of Salvation
-	[53407] = 10, 	-- Judgement of Justice
 	[642] 	= 300, 	-- Divine Shield
 	[10278] = 300, 	-- Hand of Protection
 	[6940] 	= 120, 	-- Hand of Sacrifice
 	[10308] = 40, 	-- Hammer of Justice
 	[31884] = 180, 	-- Avenging Wrath
-	[54428] = 60, 	-- Divine Plea
+	[54428] = 120, 	-- Divine Plea
 	[48827] = 30, 	-- Avenger's Shield
 	[48825] = 5, 	-- Holy Shock
-	[48952] = 8, 	-- Holy Shield
 	[48806] = 6, 	-- Hammer of Wrath
-	[20216] = 120, 	-- Divine Favor
-	[31842] = 180, 	-- Divine Illumination
+	[31842] = 180, 	-- Divine Favor
 	[31821] = 120, 	-- Aura Mastery
 	[53385] = 10, 	-- Divine Storm
 	[20066] = 60, 	-- Repentance
+	[85285] = 10,	-- Rebuke
+	[85696] = 120,	-- Zealotry
+	[86150] = 300,	-- Guardian of Ancient Kings
 	
 	-- HUNTER
 	[781]	= 20,	-- Disengage
@@ -227,6 +255,8 @@ AAV_CCSKILS = {
 	[53209]	= 9,	-- Chimera Shot
 	[19577]	= 60,	-- Intimidation
 	[19574]	= 100,	-- Bestial Wrath
+	[51753] = 60,	-- Camouflage
+	[90337]	= 60,	-- Bad Manner (Pet Blind)
 	
 	-- DEATHKNIGHT
 	[49576]	= 35,	-- Death Grip
@@ -243,6 +273,11 @@ AAV_CCSKILS = {
 	[51411]	= 8,	-- Howling Blast
 	[51271]	= 60,	-- Unbreakable Armor
 	[49206]	= 180,	-- Summon Gargoyle
+	[77575] = 60,	-- Outbreak
+	[77606] = 60,	-- Dark Simulacrum
+	[51271] = 60,	-- Pillar of Frost
+	[91797] = 60,	-- Monstrous Blow
+	[91802] = 30,	-- Shambling Rush
 	
 	-- ROGUE
 	[1784]	= 4,	-- Stealth
@@ -263,6 +298,9 @@ AAV_CCSKILS = {
 	[51713] = 60,	-- Shadow Dance
 	[14185] = 480,	-- Preparation
 	[36554] = 30,	-- Shadow Step
+	[76577] = 180,	-- Smoke Bomb
+	[74001] = 120,	-- Combat Readiness
+	[73981] = 60,	-- Redirect
 	
 	-- SHAMAN
 	[57994] = 6,	-- Wind Shear
@@ -282,6 +320,8 @@ AAV_CCSKILS = {
 	[30823] = 60,	-- Shamanistic Rage
 	[16188] = 120,	-- Nature's Swiftness
 	[16190] = 300,	-- Mana Tide Totem
+	[79206] = 120,	-- Spiritwalker's Grace
+	[73920]	= 10,	-- Healing Rain
 	
 	-- GENERAL
 	[59752]	= 120,	-- Every Man for Himself
