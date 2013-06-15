@@ -36,7 +36,7 @@ local message = {
 -------------------------
 AAV_VERSIONMAJOR = 1
 AAV_VERSIONMINOR = 1
-AAV_VERSIONBUGFIX = 5
+AAV_VERSIONBUGFIX = 6
 AAV_UPDATESPEED = 60
 AAV_AURAFULLINDEXSTEP = 1
 AAV_INITOFFTIME = 0.5
@@ -577,7 +577,7 @@ function atroxArenaViewer:UPDATE_BATTLEFIELD_STATUS(event, status)
 					for j=1,3 do
 						local name = GetArenaTeam(j)
 						if (name == teamName) then
-							M:setTeams(1, teamName, newRating, newRating - oldRating, teamSkill)
+							M:setTeams(0, teamName, newRating, newRating - oldRating, teamSkill)
 							found = true
 							break
 						end
@@ -586,7 +586,7 @@ function atroxArenaViewer:UPDATE_BATTLEFIELD_STATUS(event, status)
 				if not (found) then
 					--local teamName, oldRating, newRating, teamSkill = GetBattlefieldTeamInfo(i)
 					if (teamName ~= "") then
-						M:setTeams(2, teamName, newRating, newRating - oldRating, teamSkill)
+						M:setTeams(1, teamName, newRating, newRating - oldRating, teamSkill)
 					else
 						M:setTeams(i, "Team " .. (i+1), 0, 0, 0)
 					end

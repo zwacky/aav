@@ -28,6 +28,7 @@ function AAV_PlayStub:new()
 	self.startTime = 0
 	self.matchTime = 0
 	self.viewdetail = true
+	self.cclist = {} -- used for preventing multiple ccs on same icon
 	
 	----
 	-- these skills won't be shown.
@@ -57,10 +58,18 @@ function AAV_PlayStub:onUpdate(elapsed)
 		end
 	end
 	
+	-- resetting cc preventing list
+	for k,v in pairs(self.cclist) do
+		self.cclist[k] = nil
+	end
+	
 	-- ccs update
+	local lastCc = nil
 	for k,v in pairs(self.ccs) do
 		if (not v:isDead()) then
-			v:update(elapsed, GetFramerate())
+			v:update(elapsed, GetFramerate(), not self.cclist[v.id]) -- prevents overlaying ccs
+			--v:update(elapsed, GetFramerate())
+			self.cclist[v.id] = true
 		end
 	end
 	
