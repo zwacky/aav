@@ -36,7 +36,7 @@ local message = {
 -------------------------
 AAV_VERSIONMAJOR = 1
 AAV_VERSIONMINOR = 2
-AAV_VERSIONBUGFIX = 3
+AAV_VERSIONBUGFIX = 4
 AAV_UPDATESPEED = 60
 AAV_AURAFULLINDEXSTEP = 1
 AAV_INITOFFTIME = 0.5
@@ -1140,6 +1140,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	elseif (type == "SPELL_PERIODIC_HEAL") then
 		eventType = 8
+		timestamp, type, _, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, overkill, critical, _= select(1, ...)
 		if (not critical) then critical = 0 end
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
