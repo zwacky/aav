@@ -125,6 +125,19 @@ function AAV_PlayStub:setOnUpdate(val)
 end
 
 ----
+-- sets the map text on top of the player and adjusts the width.
+-- @param mapid map name id
+function AAV_PlayStub:setMapText(mapid)
+	if (type(mapid)=="number") then
+		self.maptext:SetText(AAV_COMM_MAPS[mapid])
+	else
+		self.maptext:SetText(mapid)
+	end
+	
+	self.maptext:GetParent():SetWidth(self.maptext:GetStringWidth() + 25)
+end
+
+----
 -- sets match data.
 -- @param data whole match data
 function AAV_PlayStub:setMatchData(id)
@@ -711,7 +724,7 @@ end
 function AAV_PlayStub:createPlayer(bracket, elapsed, broadcast)
 
 	if (not self.player) then 
-		self.origin, self.player = AAV_Gui:createPlayerFrame(self, bracket)
+		self.origin, self.player, self.maptext = AAV_Gui:createPlayerFrame(self, bracket)
 		self.detail = AAV_Gui:createButtonDetail(self.origin)
 		self.seeker = {}
 		self.seeker.bar, self.seeker.back, self.seeker.slide, self.seeker.speedval, self.seeker.speed = AAV_Gui:createSeekerBar(self.player, elapsed)

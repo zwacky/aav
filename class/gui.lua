@@ -25,7 +25,8 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 	--f:SetPoint("CENTER",0,0)
 	o:SetBackdrop({
 	  bgFile="Interface\\DialogFrame\\UI-DialogBox-Background",
-	  edgeFile="Interface\\Tooltips\\UI-Tooltip-Border", 
+	  --edgeFile="Interface\\Tooltips\\UI-Tooltip-Border", 
+	  edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border",
 	  tile=1, tileSize=10, edgeSize=10, 
 	  insets={left=3, right=3, top=3, bottom=3}
 	})
@@ -35,9 +36,27 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 	o:SetScript("OnMouseUp", o.StopMovingOrSizing)
 	o:Show()
 	
+	local m = CreateFrame("Frame", "$parentMapText", o)
+	m:SetHeight(30)
+	m:SetPoint("TOP", 0, 18)
+	m:SetBackdrop({
+	  bgFile="Interface\\DialogFrame\\UI-DialogBox-Background",
+	  edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border",
+	  tile=1, tileSize=10, edgeSize=20, 
+	  insets={left=3, right=3, top=3, bottom=3}, 
+	})
+	m:SetBackdropColor(0, 0, 0, 1)
+	
+	local mt = m:CreateFontString("$parentName", "ARTWORK", "GameFontNormal")
+	mt:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
+	mt:SetText("???")
+	mt:SetPoint("CENTER", m, 0, 0)
+	mt:Show()
+	
+	--m:SetWidth(mt:GetStringWidth() + 25)
+	
 	
 	local btn = CreateFrame("Button", "PlayerCloseButton", o)
-	--btn:SetFrameStrata("MEDIUM")
 	btn:SetHeight(32)
 	btn:SetWidth(32)
 	
@@ -54,7 +73,7 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 	end)
 	btn:Show()
 	
-	return o, f
+	return o, f, mt
 end
 
 function AAV_Gui:setPlayerFrameSize(frame, bracket)
@@ -1121,8 +1140,14 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					if (atroxArenaViewerData.data) then
 						for j=((i-1)*20)+1, (i*20) do
 							if (not atroxArenaViewerData.data[j]) then break end
-							reset(info);
-							info.text = j .. " - " .. atroxArenaViewerData.data[j]["map"] .. " (" .. atroxArenaViewerData.data[j]["startTime"] .. ")"
+							reset(info)
+							local mapname = ""
+							if (type(atroxArenaViewerData.data[j]["map"])=="number") then
+								mapname = AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]
+							else
+								mapname = atroxArenaViewerData.data[j]["map"]
+							end
+							info.text = j .. " - " .. mapname .. " (" .. atroxArenaViewerData.data[j]["startTime"] .. ")"
 							info.notCheckable = true
 							info.notClickable = false
 							info.hasArrow = false
@@ -1147,8 +1172,14 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					if (atroxArenaViewerData.data) then
 						for j=((i-1)*20)+1, (i*20) do
 							if (not atroxArenaViewerData.data[j]) then break end
-							reset(info);
-							info.text = j .. " - " .. atroxArenaViewerData.data[j]["map"] .. " (" .. atroxArenaViewerData.data[j]["startTime"] .. ")"
+							reset(info)
+							local mapname = ""
+							if (type(atroxArenaViewerData.data[j]["map"])=="number") then
+								mapname = AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]
+							else
+								mapname = atroxArenaViewerData.data[j]["map"]
+							end
+							info.text = j .. " - " .. mapname .. " (" .. atroxArenaViewerData.data[j]["startTime"] .. ")"
 							info.notCheckable = true
 							info.notClickable = false
 							info.hasArrow = false

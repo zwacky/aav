@@ -12,7 +12,6 @@ function AAV_MatchStub:new()
 	self.elapsed = 0
 	self.bracket = 0
 	self.result = 0 -- 0 = unknown, 1 = win, 2 = loss, 3 = draw
-	self.map = GetZoneText()
 	self.server = GetRealmName()
 	self.combatans = {
 		dudes = {}
@@ -24,6 +23,14 @@ function AAV_MatchStub:new()
 		[1] = {},
 	}
 	self.data = {}
+	
+	self.map = 0 -- default
+	--self.map = GetZoneText()
+	for k,v in pairs(AAV_COMM_MAPS) do
+		if (GetZoneText() == v) then
+			self.map = k
+		end
+	end
 	
 	return self
 end
@@ -122,11 +129,12 @@ function AAV_MatchStub:getDudesData()
 	return self.combatans.dudes
 end
 
---[[
-function AAV_MatchStub:sortFunction(a, b)
-	return a < b end
+----
+-- returns the current map name as a number for the AAV_COMM_MAPS table.
+-- @return map number
+function AAV_MatchStub:getCurrentMap()
+	return self.map
 end
---]]
 
 ----
 -- returns the ID of a GUID from a unit, if it has been saved to the dudes list. returns only player units.

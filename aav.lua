@@ -35,7 +35,7 @@ local message = {
 -------------------------
 AAV_VERSIONMAJOR = 1
 AAV_VERSIONMINOR = 1
-AAV_VERSIONBUGFIX = 2
+AAV_VERSIONBUGFIX = 3
 AAV_UPDATESPEED = 60
 AAV_AURAFULLINDEXSTEP = 1
 AAV_INITOFFTIME = 0.5
@@ -66,7 +66,7 @@ AAV_USEDSKILL_FRAMESPEED = 60
 AAV_USEDSKILL_ICONSPEED = 150
 AAV_USEDSKILL_FADEINSPEED = 10
 AAV_USEDSKILL_FADEOUTSPEED = 0.5
-AAV_USEDSKILL_FADEOUTTIME = 2.0  --0.5
+AAV_USEDSKILL_FADEOUTTIME = 2.0
 AAV_USEDSKILL_FADEINTIME = 1
 AAV_USEDSKILL_ICONSIZE = 25
 AAV_USEDSKILL_ICONMARGIN = 3
@@ -103,6 +103,14 @@ AAV_COMM_EVENT = {
 	["cmd_newmatch"]			= 8,
 	["cmd_updateplayer"]		= 9,
 	["cmd_updateallplayers"]	= 10,
+}
+
+AAV_COMM_MAPS = {
+	[1] = L.ARENA_NAGRAND,
+	[2] = L.ARENA_LORDAERON,
+	[3] = L.ARENA_BLADEEDGE,
+	[4] = L.ARENA_DALARAN,
+	[5] = L.ARENA_VALOR,
 }
 
 StaticPopupDialogs["AAV_EXPORT_DIALOG"] = {
@@ -245,6 +253,9 @@ function atroxArenaViewer:commLookupBroadcast(prefix, msg, dist, sender)
 		if (T and sd.state) then
 			T:setStatus(sd.state)
 		end
+		if (sd.map and sd.map ~= 0) then
+			T:setMapText(sender .. ": " .. AAV_COMM_MAPS[sd.map])
+		end
 		
 	elseif (b and sd.event == AAV_COMM_EVENT["cmd_connect"] and string.lower(sd.target) == string.lower(UnitName("player"))) then
 	-- CONNECT
@@ -277,6 +288,7 @@ function atroxArenaViewer:commLookupBroadcast(prefix, msg, dist, sender)
 		T:hidePlayer(T.player)
 		T:removeAllCooldowns()
 		T:createPlayer(1, 1, true)
+		T:setMapText(sender .. ": " .. L.CONNECT_WAITING_DATA)
 		T:handleSeeker("hide")
 		
 		T:setStatus(sd.state)
@@ -301,6 +313,7 @@ function atroxArenaViewer:commLookupBroadcast(prefix, msg, dist, sender)
 		T:removeAllCC()
 		T:removeAllCooldowns()
 		T:createPlayer(sd.bracket, 1, true)
+		--T:setMapText(sender .. ": " .. AAV_COMM_MAP[sd.map])
 		T:handleSeeker("hide")
 		T:setOnUpdate("start")
 	
@@ -321,6 +334,7 @@ function atroxArenaViewer:commLookupBroadcast(prefix, msg, dist, sender)
 		T:hidePlayer(T.player)
 		T:resetDudeData()
 		T:createPlayer(sd.bracket, 1, true)
+		T:setMapText(sender .. ": " .. AAV_COMM_MAP[sd.map])
 		T:handleSeeker("hide")
 		
 		for k,v in pairs(sd.dudes) do
@@ -415,16 +429,16 @@ end
 ---- 
 -- sendMatchInfo
 function atroxArenaViewer:sendAllPlayerInfo(sender)
-	--if (atroxArenaViewerData.current.broadcast) then
-		message["dudes"] = {
-			target = sender,
-			event = AAV_COMM_EVENT["cmd_updateallplayers"],
-			bracket = self:getCurrentBracket(),
-			dudes = M:getDudesData()
-		}
+	message["dudes"] = {
+		target = sender,
+		event = AAV_COMM_EVENT["cmd_updateallplayers"],
+		bracket = self:getCurrentBracket(),
+		dudes = M:getDudesData(),
+		map = M:getCurrentMap()
+	}
 
-		self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["dudes"]), "GUILD", nil)
-	--end
+	self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["dudes"]), "GUILD", nil)
+	message["dudes"].map = nil
 end
 
 function atroxArenaViewer:sendNewMatchInfo()
@@ -433,10 +447,12 @@ function atroxArenaViewer:sendNewMatchInfo()
 		target = nil,
 		version = nil,
 		bracket = self:getCurrentBracket(),
+		--map = M:getCurrentMap(),
 	}
 	
 	self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["std"]), "GUILD", nil)
 	message["std"].bracket = nil
+	--message["std"].map = nil
 end
 
 function atroxArenaViewer:changeBroadcast()
@@ -527,14 +543,7 @@ function atroxArenaViewer:UPDATE_BATTLEFIELD_STATUS(event, status)
 						end
 					end
 				end
-				--[[
-				for i=0,1 do
-					local teamName, oldRating, newRating, teamSkill = GetBattlefieldTeamInfo(i)
-					if (teamName ~= "") then -- track only rated matches
-						M:setTeams(i, teamName, newRating, newRating - oldRating, teamSkill)
-					end
-				end
-				--]]
+				
 				if (atroxArenaViewerData.current.broadcast) then
 					message["stats"] = {
 						event = AAV_COMM_EVENT["cmd_matchend"],
@@ -553,9 +562,11 @@ function atroxArenaViewer:UPDATE_BATTLEFIELD_STATUS(event, status)
 				target = nil,
 				version = nil,
 				state = currentstate,
+				map = self:getCurrentMapId(),
 			}
 			self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["std"]), "GUILD", nil)
 			message["std"].state = nil
+			message["std"].map = nil
 			
 		end
 	end
@@ -607,9 +618,11 @@ function atroxArenaViewer:CHAT_MSG_BG_SYSTEM_NEUTRAL(event, msg)
 				target = nil,
 				version = nil,
 				state = currentstate,
+				map = self:getCurrentMapId(),
 			}
 			self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["std"]), "GUILD", nil)
 			message["std"].state = nil
+			message["std"].map = nil
 		end
 	elseif (msg == L.ARENA_45) then
 		currentstate = 5
@@ -619,9 +632,11 @@ function atroxArenaViewer:CHAT_MSG_BG_SYSTEM_NEUTRAL(event, msg)
 				target = nil,
 				version = nil,
 				state = currentstate,
+				map = self:getCurrentMapId(),
 			}
 			self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["std"]), "GUILD", nil)
 			message["std"].state = nil
+			message["std"].map = nil
 		end
 	elseif (msg == L.ARENA_30) then
 		currentstate = 6
@@ -631,9 +646,11 @@ function atroxArenaViewer:CHAT_MSG_BG_SYSTEM_NEUTRAL(event, msg)
 				target = nil,
 				version = nil,
 				state = currentstate,
+				map = self:getCurrentMapId(),
 			}
 			self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["std"]), "GUILD", nil)
 			message["std"].state = nil
+			message["std"].map = nil
 		end
 	elseif (msg == L.ARENA_15) then
 		currentstate = 7
@@ -643,9 +660,11 @@ function atroxArenaViewer:CHAT_MSG_BG_SYSTEM_NEUTRAL(event, msg)
 				target = nil,
 				version = nil,
 				state = currentstate,
+				map = self:getCurrentMapId(),
 			}
 			self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["std"]), "GUILD", nil)
 			message["std"].state = nil
+			message["std"].map = nil
 		end
 	end
 end
@@ -816,6 +835,18 @@ function atroxArenaViewer:queueMatchData()
 			queue[k] = nil
 		end
 	end
+end
+
+----
+-- queries the current zone and compares the text with the ones in the AAV_COMM_MAPS.
+-- @return map id
+function atroxArenaViewer:getCurrentMapId()
+	for k,v in pairs(AAV_COMM_MAPS) do
+		if (GetZoneText() == v) then
+			return k
+		end
+	end
+	return 0
 end
 
 ----
@@ -1256,10 +1287,11 @@ function atroxArenaViewer:playMatch(num)
 	
 	if (T:getCurrentMatchData()) then
 		pre = AAV_Util:split(T:getCurrentMatchData(), ',')
-		
 		T:removeAllCC()
 		T:removeAllCooldowns()
 		T:setTickTime(tonumber(pre[1]))
+		T:setMapText(T:getMatch()["map"])
+		
 		T:handleTimer("start")
 	else
 		print("Error - bad match data.")
