@@ -36,7 +36,7 @@ local message = {
 -------------------------
 AAV_VERSIONMAJOR = 1
 AAV_VERSIONMINOR = 2
-AAV_VERSIONBUGFIX = 1
+AAV_VERSIONBUGFIX = 2
 AAV_UPDATESPEED = 60
 AAV_AURAFULLINDEXSTEP = 1
 AAV_INITOFFTIME = 0.5
@@ -90,8 +90,8 @@ AAV_CC_MAXLISTING = 5
 AAV_DETAIL_ENTRYHEIGHT = 20
 AAV_DETAIL_ENTRYWIDTH = 560
 
-AAV_COMM_LOOKUPBROADCAST = "AAVLookupBroadcast"
-AAV_COMM_HANDLEMATCHDATA = "AAVHandleData"
+AAV_COMM_LOOKUPBROADCAST = "AAVLookup"
+AAV_COMM_HANDLEMATCHDATA = "AAVHandle"
 
 AAV_COMM_EVENT = {
 	["cmd_versioncheck"]		= 1,
@@ -181,8 +181,10 @@ end
 
 function atroxArenaViewer:OnEnable()
 
-    self:RegisterComm(AAV_COMM_LOOKUPBROADCAST , "commLookupBroadcast")
-    self:RegisterComm(AAV_COMM_HANDLEMATCHDATA , "commHandleMatchData")
+    --self:RegisterComm(AAV_COMM_LOOKUPBROADCAST , "commLookupBroadcast")
+    self:RegisterComm(AAV_COMM_LOOKUPBROADCAST , "lookupBroadcast")
+    --self:RegisterComm(AAV_COMM_HANDLEMATCHDATA , "commHandleMatchData")
+    self:RegisterComm(AAV_COMM_HANDLEMATCHDATA , "handleMatchData")
     
     local msg = {
 		event = AAV_COMM_EVENT["cmd_versioncheck"],
@@ -220,7 +222,7 @@ end
 -- @param msg delivered msg
 -- @param dist channel
 -- @param sender player
-function atroxArenaViewer:commLookupBroadcast(prefix, msg, dist, sender)
+function atroxArenaViewer:lookupBroadcast(prefix, msg, dist, sender)
 	local b, sd = self:Deserialize(msg)
 	if (b and sd.event == AAV_COMM_EVENT["cmd_versioncheck"]) then
 	-- VERSION CHECK
@@ -459,7 +461,7 @@ end
 
 ----
 -- incoming match data.
-function atroxArenaViewer:commHandleMatchData(prefix, msg, dist, sender)
+function atroxArenaViewer:handleMatchData(prefix, msg, dist, sender)
 	local message = AAV_Util:split(msg, '^')
 	if (atroxArenaViewerData.current.listening == sender) then
 		for k,v in pairs(message) do
@@ -1067,12 +1069,16 @@ function atroxArenaViewer:UPDATE_BATTLEFIELD_SCORE(event, unit)
 end
 
 function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
-	local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical = select(1, ...)
+	--local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical = select(1, ...)
+	local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical
 	local eventType, msg
+	
+	type, _, sourceGUID, _, _, destGUID = select(2, ...)
 	
 	local source = M:getGUIDtoNumber(sourceGUID)
 	local dest = M:getGUIDtoNumber(destGUID)
-	if (not absorbed) then absorbed = 0 end
+	
+	print(source, dest)
 	
 	-- check if name is unknown
 	--[[
@@ -1087,38 +1093,45 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	end
 	--]]
 	
-	
-	-- TYPE 3
 	if (type == "SWING_DAMAGE") then
 		eventType = 3
+		timestamp, type, _, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, amount, overkill, school, resisted, blocked, absorbed, critical = select(1, ...)
 		if (not critical) then critical = 0 end
+		if (not absorbed) then absorbed = 0 end
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
 			M:addStats(1, sourceGUID, amount + absorbed)
 		end
 	elseif (type == "SPELL_DAMAGE") then
 		eventType = 4
+		timestamp, type, _, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical = select(1, ...)
 		if (not critical) then critical = 0 end
+		if (not absorbed) then absorbed = 0 end
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
 			M:addStats(1, sourceGUID, amount + absorbed)
 		end
 	elseif (type == "SPELL_PERIODIC_DAMAGE") then
 		eventType = 5
+		timestamp, type, _, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical = select(1, ...)
 		if (not critical) then critical = 0 end
+		if (not absorbed) then absorbed = 0 end
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
 			M:addStats(1, sourceGUID, amount + absorbed)
 		end
 	elseif (type == "RANGE_DAMAGE") then
 		eventType = 6
+		timestamp, type, _, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical = select(1, ...)
 		if (not critical) then critical = 0 end
+		if (not absorbed) then absorbed = 0 end
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
 			M:addStats(1, sourceGUID, amount + absorbed)
 		end
 	elseif (type == "SPELL_HEAL") then
 		eventType = 7
+		timestamp, type, _, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, overkill, critical, _= select(1, ...)
 		if (not critical) then critical = 0 end
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
@@ -1133,6 +1146,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	elseif (type == "SPELL_CAST_START") then
 		eventType = 9
+		timestamp, type, _, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool = select(1, ...)
 		if (source) then
 			local target, destTarget = M:getGUIDtoTarget(sourceGUID), ""
 			if (target) then destTarget = M:getGUIDtoNumber(UnitGUID(target .. "target")) end
@@ -1143,6 +1157,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	elseif (type == "SPELL_CAST_SUCCESS") then
 		eventType = 10
+		timestamp, type, _, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool = select(1, ...)
 		if (source) then
 			if (not dest) then dest = -1 end
 			local time = 0
@@ -1155,6 +1170,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		
 	elseif (type == "SPELL_INTERRUPT") then
 		eventType = 12
+		timestamp, type, _, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, _, _, _ = select(1, ...) -- counteredSpellid, counteredSpellName, counteredSpellSchool
 		if (source and dest) then
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. spellId .. "," .. amount)
 		end

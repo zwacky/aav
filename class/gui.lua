@@ -73,7 +73,7 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 	btn:SetNormalTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Up")
 	btn:SetPushedTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Down")
 	btn:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight", "ADD")
-
+	
 	btn:SetPoint("TOPRIGHT" , o, "TOPRIGHT", 0, 0)
 	btn:SetScript("OnClick", function (s, b, d)
 		obj:hidePlayer(s:GetParent())
