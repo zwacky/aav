@@ -130,13 +130,6 @@ function AAV_MatchStub:getDudesData()
 end
 
 ----
--- returns the current map name as a number for the AAV_COMM_MAPS table.
--- @return map number
-function AAV_MatchStub:getCurrentMap()
-	return self.map
-end
-
-----
 -- returns the ID of a GUID from a unit, if it has been saved to the dudes list. returns only player units.
 -- @return ID
 function AAV_MatchStub:getGUIDtoNumber(guid)

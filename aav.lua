@@ -35,7 +35,7 @@ local message = {
 -------------------------
 AAV_VERSIONMAJOR = 1
 AAV_VERSIONMINOR = 1
-AAV_VERSIONBUGFIX = 3
+AAV_VERSIONBUGFIX = 4
 AAV_UPDATESPEED = 60
 AAV_AURAFULLINDEXSTEP = 1
 AAV_INITOFFTIME = 0.5
@@ -257,25 +257,23 @@ function atroxArenaViewer:commLookupBroadcast(prefix, msg, dist, sender)
 			T:setMapText(sender .. ": " .. AAV_COMM_MAPS[sd.map])
 		end
 		
-	elseif (b and sd.event == AAV_COMM_EVENT["cmd_connect"] and string.lower(sd.target) == string.lower(UnitName("player"))) then
+	elseif (b and sd.event == AAV_COMM_EVENT["cmd_connect"] and string.lower(sd.target) == string.lower(UnitName("player")) and atroxArenaViewerData.current.broadcast) then
 	-- CONNECT
 		
 		print("|cffe392c5<AAV>|r New spectator connected: " .. sender)
 		
-		if (atroxArenaViewerData.current.broadcast) then
-			message["std"] = {
-				event = AAV_COMM_EVENT["cmd_accept"],
-				target = sender,
-				version = nil,
-				state = currentstate,
-			}
-			self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["std"]), "GUILD", nil)
-			message["std"].state = nil
-			
-			-- if match is running, send match data
-			if (M and atroxArenaViewerData.current.inFight) then
-				self:sendAllPlayerInfo(sender)
-			end
+		message["std"] = {
+			event = AAV_COMM_EVENT["cmd_accept"],
+			target = sender,
+			version = nil,
+			state = currentstate,
+		}
+		self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["std"]), "GUILD", nil)
+		message["std"].state = nil
+		
+		-- if match is running, send match data
+		if (M and atroxArenaViewerData.current.inFight) then
+			self:sendAllPlayerInfo(sender)
 		end
 	elseif (b and sd.event == AAV_COMM_EVENT["cmd_accept"] and sd.target == UnitName("player")) then
 	-- ACCEPT
@@ -334,7 +332,7 @@ function atroxArenaViewer:commLookupBroadcast(prefix, msg, dist, sender)
 		T:hidePlayer(T.player)
 		T:resetDudeData()
 		T:createPlayer(sd.bracket, 1, true)
-		T:setMapText(sender .. ": " .. AAV_COMM_MAP[sd.map])
+		T:setMapText(sender .. ": " .. AAV_COMM_MAPS[sd.map])
 		T:handleSeeker("hide")
 		
 		for k,v in pairs(sd.dudes) do
@@ -434,7 +432,7 @@ function atroxArenaViewer:sendAllPlayerInfo(sender)
 		event = AAV_COMM_EVENT["cmd_updateallplayers"],
 		bracket = self:getCurrentBracket(),
 		dudes = M:getDudesData(),
-		map = M:getCurrentMap()
+		map = self:getCurrentMapId(),
 	}
 
 	self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["dudes"]), "GUILD", nil)
