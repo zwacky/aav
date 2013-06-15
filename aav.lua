@@ -36,7 +36,7 @@ local message = {
 -------------------------
 AAV_VERSIONMAJOR = 1
 AAV_VERSIONMINOR = 2
-AAV_VERSIONBUGFIX = 2
+AAV_VERSIONBUGFIX = 3
 AAV_UPDATESPEED = 60
 AAV_AURAFULLINDEXSTEP = 1
 AAV_INITOFFTIME = 0.5
@@ -181,10 +181,11 @@ end
 
 function atroxArenaViewer:OnEnable()
 
-    --self:RegisterComm(AAV_COMM_LOOKUPBROADCAST , "commLookupBroadcast")
-    self:RegisterComm(AAV_COMM_LOOKUPBROADCAST , "lookupBroadcast")
-    --self:RegisterComm(AAV_COMM_HANDLEMATCHDATA , "commHandleMatchData")
-    self:RegisterComm(AAV_COMM_HANDLEMATCHDATA , "handleMatchData")
+	RegisterAddonMessagePrefix(AAV_COMM_LOOKUPBROADCAST)
+    RegisterAddonMessagePrefix(AAV_COMM_HANDLEMATCHDATA)
+
+    self:RegisterComm(AAV_COMM_LOOKUPBROADCAST, "lookupBroadcast")
+    self:RegisterComm(AAV_COMM_HANDLEMATCHDATA, "handleMatchData")
     
     local msg = {
 		event = AAV_COMM_EVENT["cmd_versioncheck"],
@@ -224,6 +225,7 @@ end
 -- @param sender player
 function atroxArenaViewer:lookupBroadcast(prefix, msg, dist, sender)
 	local b, sd = self:Deserialize(msg)
+	
 	if (b and sd.event == AAV_COMM_EVENT["cmd_versioncheck"]) then
 	-- VERSION CHECK
 		
@@ -292,6 +294,7 @@ function atroxArenaViewer:lookupBroadcast(prefix, msg, dist, sender)
 			version = nil,
 			state = currentstate,
 		}
+		
 		self:SendCommMessage(AAV_COMM_LOOKUPBROADCAST, self:Serialize(message["std"]), self:getCommMethod(), nil)
 		message["std"].state = nil
 		
@@ -1077,8 +1080,6 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	
 	local source = M:getGUIDtoNumber(sourceGUID)
 	local dest = M:getGUIDtoNumber(destGUID)
-	
-	print(source, dest)
 	
 	-- check if name is unknown
 	--[[
