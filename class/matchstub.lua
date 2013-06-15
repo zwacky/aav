@@ -17,6 +17,8 @@ function AAV_MatchStub:new()
 	self.combatans = {
 		dudes = {}
 	}
+	self.buffs = {}
+	self.debuffs = {}
 	self.teams = {
 		[0] = {},
 		[1] = {},
@@ -48,7 +50,10 @@ function AAV_MatchStub:newDude(unit, team, max)
 	local id
 	if (UnitIsPlayer(unit)) then id = max else id = max-10 end
 	
-	self.combatans.dudes[UnitGUID(unit)] = {}
+	if (self.combatans.dudes[UnitGUID(unit)]) then self.combatans.dudes[UnitGUID(unit)] = nil else self.combatans.dudes[UnitGUID(unit)] = {} end
+	if (self.buffs[id]) then self.buffs[id] = nil else self.buffs[id] = {} end
+	if (self.debuffs[id]) then self.debuffs[id] = nil else self.debuffs[id] = {} end
+	
 	self.combatans.dudes[UnitGUID(unit)].name = UnitName(unit)
 	_, self.combatans.dudes[UnitGUID(unit)].class = UnitClass(unit)
 	_, self.combatans.dudes[UnitGUID(unit)].race = UnitRace(unit)
@@ -75,7 +80,10 @@ end
 -- @param key GUID
 -- @param dude table
 function AAV_MatchStub:addDude(key, dude)
-	self.combatans.dudes[key] = {}
+	if (self.combatans.dudes[key]) then self.combatans.dudes[key] = nil else self.combatans.dudes[key] = {} end
+	if (self.buffs[id]) then self.buffs[id] = nil else self.buffs[id] = {} end
+	if (self.debuffs[id]) then self.debuffs[id] = nil else self.debuffs[id] = {} end
+	
 	self.combatans.dudes[key].name = dude.name
 	_, self.combatans.dudes[key].class = dude.class
 	_, self.combatans.dudes[key].race = dude.race
@@ -91,6 +99,21 @@ function AAV_MatchStub:addDude(key, dude)
 	self.combatans.dudes[key].hcrit = dude.hcrit
 end
 
+----
+-- returns all buffs on omitted player id.
+-- @param id player id
+-- @return buffs data
+function AAV_MatchStub:getBuffs(id)
+	return self.buffs[id]
+end
+
+----
+-- returns all debuffs on omitted player id.
+-- @param id player id
+-- @return debuffs data
+function AAV_MatchStub:getDebuffs(id)
+	return self.debuffs[id]
+end
 
 ----
 -- returns all current dudes.
@@ -98,6 +121,12 @@ end
 function AAV_MatchStub:getDudesData()
 	return self.combatans.dudes
 end
+
+--[[
+function AAV_MatchStub:sortFunction(a, b)
+	return a < b end
+end
+--]]
 
 ----
 -- returns the ID of a GUID from a unit, if it has been saved to the dudes list. returns only player units.

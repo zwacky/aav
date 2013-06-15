@@ -16,6 +16,7 @@ lib\AceSerializer-3.0\AceSerializer-3.0.xml
 
 lang\lang.en.lua
 lang\lang.de.lua
+lang\lang.kr.lua
 
 aav.lua
 conf.lua

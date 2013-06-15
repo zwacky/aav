@@ -15,6 +15,8 @@ local initbroadcast = false -- whether a lookup has been sent
 local currentstate = 1
 local exportnum = 0
 local currentbracket = nil
+local tempbuffs = {} -- used for determining new buffs
+local tempdebuffs = {} -- used for determining new debuffs
 local exceptauras = { -- these auras won't be tracked
 	32727,	-- Arena Preparation
 }
@@ -33,7 +35,7 @@ local message = {
 -------------------------
 AAV_VERSIONMAJOR = 1
 AAV_VERSIONMINOR = 1
-AAV_VERSIONBUGFIX = 1
+AAV_VERSIONBUGFIX = 2
 AAV_UPDATESPEED = 60
 AAV_AURAFULLINDEXSTEP = 1
 AAV_INITOFFTIME = 0.5
@@ -577,7 +579,7 @@ function atroxArenaViewer:CHAT_MSG_BG_SYSTEM_NEUTRAL(event, msg)
 				if (UnitExists("raid" .. i)) then
 					local key, player = M:updateMatchPlayers(1, "raid" .. i)
 					--self:ScheduleTimer("initArenaMatchUnits", AAV_INITOFFTIME, {"raid" .. i, 1})
-					self:initArenaMatchUnits({"raid" .. i, 1})
+					--self:initArenaMatchUnits({"raid" .. i, 1})
 					self:sendPlayerInfo(key, player)
 				end
 			end
@@ -709,6 +711,8 @@ function atroxArenaViewer:handleEvents(val)
 		self:RegisterEvent("UNIT_MANA")
 		self:RegisterEvent("ARENA_OPPONENT_UPDATE")
 		self:RegisterEvent("UPDATE_BATTLEFIELD_SCORE")
+		self:RegisterEvent("UNIT_NAME_UPDATE")
+		self:RegisterEvent("UNIT_AURA")
 		atroxArenaViewerData.current.inFight = true
 		
 		
@@ -719,6 +723,8 @@ function atroxArenaViewer:handleEvents(val)
 		self:UnregisterEvent("UNIT_MANA")
 		self:UnregisterEvent("ARENA_OPPONENT_UPDATE")
 		self:UnregisterEvent("UPDATE_BATTLEFIELD_SCORE")
+		self:UnregisterEvent("UNIT_NAME_UPDATE")
+		self:UnregisterEvent("UNIT_AURA")
 		atroxArenaViewerData.current.inFight = false
 		
 	end
@@ -766,6 +772,13 @@ function atroxArenaViewer:initArenaMatchUnits(arr)
 		else
 			break
 		end
+	end
+	
+	for k,v in pairs(buffs) do
+		M:getBuffs(guid)[k] = true
+	end
+	for k,v in pairs(debuffs) do
+		M:getDebuffs(guid)[k] = true
 	end
 	
 	self:createMessage(self.getDiffTime(), "0," .. guid .. "," .. UnitHealth(unit) .. "," .. UnitHealthMax(unit) .. "," .. table.concat(buffs, ";") .. "," .. table.concat(debuffs, ";"))
@@ -843,6 +856,72 @@ function atroxArenaViewer:UNIT_HEALTH(event, unit)
 	end
 end
 
+function atroxArenaViewer:UNIT_AURA(event, unit)
+	local n, m = 1, 1
+	local sub = string.sub(unit,1,4)
+	if (sub ~= "raid" and sub ~= "aren") then return end
+	
+	local id = M:getGUIDtoNumber(UnitGUID(unit))
+	if (not id) then return end
+	
+	for n = 1, 40 do
+		local _, _, _, _, _, btime, _, _, _, _, bspellid = UnitBuff(unit, n)
+		local _, _, _, _, _, dtime, _, _, _, _, dspellid = UnitDebuff(unit, n)
+		
+		if (not bspellid and not dspellid) then break end
+		
+		if (bspellid) then tempbuffs[bspellid] = true end
+		if (dspellid) then tempdebuffs[dspellid] = true end
+		
+		if (bspellid and not M:getBuffs(id)[bspellid]) then
+			-- create new buff
+			M:getBuffs(id)[bspellid] = true
+			
+			if (not btime) then btime = 0 end
+			self:createMessage(self:getDiffTime(), "13," .. id .. "," .. bspellid .. ",1," .. btime)
+		end
+		if (dspellid and not M:getDebuffs(id)[dspellid]) then
+			-- create new debuff
+			M:getDebuffs(id)[dspellid] = true
+			
+			if (not dtime) then dtime = 0 end
+			self:createMessage(self:getDiffTime(), "13," .. id .. "," .. dspellid .. ",2," .. dtime)
+		end
+	end
+	
+	for k,v in pairs(M:getBuffs(id)) do
+		if (not tempbuffs[k]) then
+			--remove
+			self:createMessage(self:getDiffTime(), "14," .. id .. "," .. k .. ",1")
+			M:getBuffs(id)[k] = nil
+		end
+	end
+	for k,v in pairs(M:getDebuffs(id)) do
+		if (not tempdebuffs[k]) then
+			--remove
+			self:createMessage(self:getDiffTime(), "14," .. id .. "," .. k .. ",2")
+			M:getDebuffs(id)[k] = nil
+		end
+	end
+	
+	for k,v in pairs(tempbuffs) do
+		tempbuffs[k] = nil
+	end
+	for k,v in pairs(tempdebuffs) do
+		tempdebuffs[k] = nil
+	end
+	
+end
+
+function atroxArenaViewer:UNIT_NAME_UPDATE(event, unit)
+	if (UnitIsPlayer(unit)) then
+		if (not M) then return end
+		local sourceGUID = UnitGUID(unit)
+		
+		M:getDudesData()[sourceGUID].name = UnitName(unit)
+		self:sendPlayerInfo(sourceGUID, M:getDudesData()[sourceGUID])
+	end
+end
 
 function atroxArenaViewer:ARENA_OPPONENT_UPDATE(event, unit, type)
 	local u = M:getGUIDtoNumber(UnitGUID(unit))
@@ -852,11 +931,11 @@ function atroxArenaViewer:ARENA_OPPONENT_UPDATE(event, unit, type)
 			local key, player = M:updateMatchPlayers(2, unit)
 			self:sendPlayerInfo(key, player)
 			
-			self:ScheduleTimer("initArenaMatchUnits", AAV_INITOFFTIME, {unit, 2})
+			--self:ScheduleTimer("initArenaMatchUnits", AAV_INITOFFTIME, {unit, 2})
 			--self:initArenaMatchUnits({unit, 2})
 		else
 			-- if character vanishes and reappears
-			self:initArenaMatchUnits({unit, 2})
+			--self:initArenaMatchUnits({unit, 2})
 			self:createMessage(self:getDiffTime(), "18," .. u .. ",2")
 		end
 		
@@ -887,6 +966,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	if (not absorbed) then absorbed = 0 end
 	
 	-- check if name is unknown
+	--[[
 	if (source and M:getDudesData()[sourceGUID].name == L.UNKNOWN) then
 		M:getDudesData()[sourceGUID].name = UnitName(M:getGUIDtoTarget(sourceGUID))
 		self:sendPlayerInfo(sourceGUID, M:getDudesData()[sourceGUID])
@@ -896,6 +976,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		M:getDudesData()[destGUID].name = UnitName(M:getGUIDtoTarget(destGUID))
 		self:sendPlayerInfo(destGUID, M:getDudesData()[destGUID])
 	end
+	--]]
 	
 	
 	-- TYPE 3
@@ -969,6 +1050,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. spellId .. "," .. amount)
 		end
 	elseif (type == "SPELL_AURA_APPLIED") then
+		--[[
 		eventType = 13
 		if (source and dest) then
 			local time = 0
@@ -993,12 +1075,15 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			if (not time) then time = 0 end
 			self:createMessage(self:getDiffTime(), eventType .. "," .. dest .. "," .. spellId .. "," .. amount .. "," .. time)
 		end
+		--]]
 	elseif (type == "SPELL_AURA_REMOVED") then
+		--[[
 		eventType = 14
 		if (source and dest) then
 			if (amount == "BUFF") then amount = 1 else amount = 2 end -- buffs = 1, debuffs = 2
 			self:createMessage(self:getDiffTime(), eventType .. "," .. dest .. "," .. spellId .. "," .. amount)
 		end
+		--]]
 	elseif (type == "SPELL_AURA_REFRESH") then
 		eventType = 15
 		--[[
@@ -1220,14 +1305,17 @@ function atroxArenaViewer:executeMatchData(tick, data)
 		
 		T:setBar(tonumber(data[3]), tonumber(data[4]))
 		T:setMaxBar(tonumber(data[3]), tonumber(data[5]))
-		
+		--[[
 		T:removeAllAuras(tonumber(data[3]))
 		
 		local buffs = AAV_Util:split(data[6], ";")
 		
 		if (buffs) then
 			for k,v in pairs(buffs) do
-				
+				for c,w in pairs(buffs) do
+					-- sexx
+					T.entities[id]
+				end
 				T:addAura(tonumber(data[3]), tonumber(v), 1)
 			end
 		end
@@ -1238,7 +1326,7 @@ function atroxArenaViewer:executeMatchData(tick, data)
 				T:addAura(tonumber(data[3]), tonumber(v), 2)
 			end
 		end
-		
+		--]]
 	-- current HP
 	elseif (t == 1) then
 		T:setBar(tonumber(data[3]), tonumber(data[4]))
@@ -1246,14 +1334,16 @@ function atroxArenaViewer:executeMatchData(tick, data)
 	-- max HP
 	elseif (t == 2) then
 		T:setMaxBar(tonumber(data[3]), tonumber(data[4]))
-	
+		
 	-- damage
 	elseif (t == 3 or t == 4 or t == 5 or t == 6) then	
 		T:addFloatingCombatText(tonumber(data[4]), tonumber(data[5]), tonumber(data[6]), 1)
+		--T:addDamage(tonumber(data[4]), tonumber(data[5]))
 		
 	-- heal	
 	elseif (t == 7 or t == 8) then
 		T:addFloatingCombatText(tonumber(data[4]), tonumber(data[5]), tonumber(data[6]), 2)
+		--T:addHeal(tonumber(data[4]), tonumber(data[5]))
 		
 	-- cast starts
 	elseif (t == 9) then
