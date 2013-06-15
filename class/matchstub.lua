@@ -35,19 +35,32 @@ function AAV_MatchStub:new()
 	return self
 end
 
+----
 -- saves temporary data to variables.
+-- as of 1.1.7 buffs and debuffs arent saved to variables anymore.
 -- @param mid matchid
 function AAV_MatchStub:saveToVariable(matchid)
 
 	for k,v in pairs(self) do
-		atroxArenaViewerData.data[matchid][k] = v
+		if (k ~= "buffs" and k ~= "debuffs") then
+			atroxArenaViewerData.data[matchid][k] = v
+		end
 	end
 
 end
 
-function AAV_MatchStub:setBracket(b)
-	self.bracket = b
+----
+-- sets the bracket according to the dudes data.
+function AAV_MatchStub:setBracket()
+	local bracket = 0
+	for k,v in pairs(self.combatans.dudes) do
+		if (v.team == 1 and v.player == 1) then
+			bracket = bracket + 1
+		end
+	end
+	self.bracket = bracket
 end
+
 
 ----
 -- inserts a new match member.
@@ -244,7 +257,9 @@ end
 
 ----
 -- sets the match end from the first and the last data.
+-- as of 1.1.7 brackets are verified if they consist of 2, 3 or 5 and not nil.
 function AAV_MatchStub:setMatchEnd()
+	
 	local max, a, b = table.getn(self.data), 0, 0
 	if (self.data[1] and max) then
 		a = AAV_Util:split(self.data[1], ",")

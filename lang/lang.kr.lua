@@ -61,3 +61,5 @@ L.DETAIL_HIGHDAMAGE				= "최고\n피해량"
 L.DETAIL_HEALDONE				= "\n치유량"
 L.DETAIL_RATING					= "평점"
 L.DETAIL_MMR					= "가상평점"
+
+L.ERROR_OLDMATCHES				= "You may encounter issues while playing older games (old SpellIds, etc.)!"

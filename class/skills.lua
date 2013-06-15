@@ -8,11 +8,9 @@ function AAV_UsedSkill:new(parent, spellid, cast, num, v)
 	
 	self.frame, self.bar, self.target, self.tcolor = AAV_Gui:createUsedSkill(parent, num)
 	self.num = num
-	--self.interrupt = false
+	self.alive = 0
+	self.timer = 0
 	self:setValue(parent, spellid, cast, num, v)
-	--self.interrupt = nil
-	--self.frame:Show()
-	
 	
 	return self
 	
@@ -24,6 +22,9 @@ end
 
 function AAV_UsedSkill:setValue(parent, spellid, cast, num, v)
 	local name, rank, icon, cost, isfunnel, ptype, casttime = GetSpellInfo(spellid)
+	if (name == nil) then
+		return
+	end
 	
 	self.spellid = spellid
 	self.cast = cast

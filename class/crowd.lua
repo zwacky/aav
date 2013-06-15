@@ -1,7 +1,7 @@
 ﻿AAV_Crowd = {}
 AAV_Crowd.__index = AAV_Crowd
 
-function AAV_Crowd:new(parent, id)
+function AAV_Crowd:new(parent, id, visible)
 	
 	local self = {}
 	setmetatable(self, AAV_Crowd)
@@ -54,7 +54,7 @@ function AAV_Crowd:setDead()
 	self.frame:Hide()
 end
 
-function AAV_Crowd:update(elapsed, rate)
+function AAV_Crowd:update(elapsed, rate, visible)
 	self.timer = self.timer + elapsed
 	
 	if (self.timer > (1 / AAV_UPDATESPEED)) then
@@ -67,6 +67,7 @@ function AAV_Crowd:update(elapsed, rate)
 		if (self.frame:GetAlpha() < 1 and self.alive < AAV_CROWD_FADEINTIME) then
 			if (self.frame:GetAlpha() + (self.timer*AAV_CROWD_FADEINSPEED) > 1) then
 				self.frame:SetAlpha(1)
+				self.text:SetAlpha(1)
 			else
 				self.frame:SetAlpha(self.frame:GetAlpha() + self.timer*AAV_CROWD_FADEINSPEED)
 			end
@@ -76,6 +77,7 @@ function AAV_Crowd:update(elapsed, rate)
 		if (self.alive > (self.starttime - AAV_CROWD_FADEOUTTIME)) then
 			if (self.frame:GetAlpha() - (self.timer*AAV_CROWD_FADEOUTSPEED) < 0) then
 				self.frame:SetAlpha(0)
+				self.text:SetAlpha(0)
 			else
 				self.frame:SetAlpha(self.frame:GetAlpha() - (self.timer*AAV_CROWD_FADEOUTSPEED))
 			end
@@ -85,7 +87,7 @@ function AAV_Crowd:update(elapsed, rate)
 		self.timer = 0
 		
 		-- setting dead
-		if (self.alive > self.ttl) then
+		if (self.alive > self.ttl or not visible) then
 			self:setDead()
 		end
 	end

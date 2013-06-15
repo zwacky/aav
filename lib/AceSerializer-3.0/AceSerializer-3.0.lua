@@ -10,8 +10,8 @@
 -- make into AceSerializer.
 -- @class file
 -- @name AceSerializer-3.0
--- @release $Id: AceSerializer-3.0.lua 877 2009-11-02 15:56:50Z nevcairiel $
-local MAJOR,MINOR = "AceSerializer-3.0", 2
+-- @release $Id: AceSerializer-3.0.lua 80 2012-08-28 00:28:07Z reighnman $
+local MAJOR,MINOR = "AceSerializer-3.0", 4
 local AceSerializer, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not AceSerializer then return end
@@ -24,9 +24,11 @@ local pairs, select, frexp = pairs, select, math.frexp
 local tconcat = table.concat
 
 -- quick copies of string representations of wonky numbers
-local serNaN = tostring(0/0)
-local serInf = tostring(1/0)
-local serNegInf = tostring(-1/0)
+local inf = math.huge
+
+local serNaN  -- can't do this in 4.3, see ace3 ticket 268
+local serInf = tostring(inf)
+local serNegInf = tostring(-inf)
 
 
 -- Serialization functions
@@ -34,7 +36,9 @@ local serNegInf = tostring(-1/0)
 local function SerializeStringHelper(ch)	-- Used by SerializeValue for strings
 	-- We use \126 ("~") as an escape character for all nonprints plus a few more
 	local n = strbyte(ch)
-	if n<=32 then 			-- nonprint + space
+	if n==30 then           -- v3 / ticket 115: catch a nonprint that ends up being "~^" when encoded... DOH
+		return "\126\122"
+	elseif n<=32 then 			-- nonprint + space
 		return "\126"..strchar(n+64)
 	elseif n==94 then		-- value separator 
 		return "\126\125"
@@ -58,7 +62,7 @@ local function SerializeValue(v, res, nres)
 	
 	elseif t=="number" then	-- ^N = number (just tostring()ed) or ^F (float components)
 		local str = tostring(v)
-		if tonumber(str)==v  or str==serNaN or str==serInf or str==serNegInf then
+		if tonumber(str)==v  --[[not in 4.3 or str==serNaN]] or str==serInf or str==serNegInf then
 			-- translates just fine, transmit as-is
 			res[nres+1] = "^N"
 			res[nres+2] = str
@@ -126,8 +130,10 @@ end
 
 -- Deserialization functions
 local function DeserializeStringHelper(escape)
-	if escape<"~\123" then
+	if escape<"~\122" then
 		return strchar(strbyte(escape,2,2)-64)
+	elseif escape=="~\122" then	-- v3 / ticket 115: special case encode since 30+64=94 ("^") - OOPS.
+		return "\030"
 	elseif escape=="~\123" then
 		return "\127"
 	elseif escape=="~\124" then
@@ -139,12 +145,12 @@ local function DeserializeStringHelper(escape)
 end
 
 local function DeserializeNumberHelper(number)
-	if number == serNaN then
+	--[[ not in 4.3 if number == serNaN then
 		return 0/0
-	elseif number == serNegInf then
-		return -1/0
+	else]]if number == serNegInf then
+		return -inf
 	elseif number == serInf then
-		return 1/0
+		return inf
 	else
 		return tonumber(number)
 	end

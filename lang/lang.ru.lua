@@ -61,3 +61,5 @@ L.DETAIL_HIGHDAMAGE				= "Наибольший\nурон"
 L.DETAIL_HEALDONE				= "Сделано\nисцеления"
 L.DETAIL_RATING					= "Рейтинг"
 L.DETAIL_MMR					= "MMR"
+
+L.ERROR_OLDMATCHES				= "You may encounter issues while playing older games (old SpellIds, etc.)!"
