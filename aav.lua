@@ -114,6 +114,7 @@ AAV_COMM_MAPS = {
 	[4] = L.ARENA_DALARAN,
 	[5] = L.ARENA_VALOR,
 	[6] = L.ARENA_TOLVIR,
+	[7] = L.ARENA_PEAK,
 }
 
 StaticPopupDialogs["AAV_EXPORT_DIALOG"] = {
@@ -963,11 +964,12 @@ function atroxArenaViewer:UNIT_HEALTH(event, unit)
 		local target = M:getChangeInHealthFlags(unit)
 		local u = M:getGUIDtoNumber(UnitGUID(unit))
 		
-		if (bit.band(target, 0x1) ~= 0 and u) then
-			self:createMessage(self:getDiffTime(), "1," .. u .. "," .. UnitHealth(unit))
-		end
+		-- max health first to fill current health up
 		if (bit.band(target,0x2) ~= 0 and u) then
 			self:createMessage(self:getDiffTime(), "2," .. u .. "," .. UnitHealthMax(unit))
+		end
+		if (bit.band(target, 0x1) ~= 0 and u) then
+			self:createMessage(self:getDiffTime(), "1," .. u .. "," .. UnitHealth(unit))
 		end
 	end
 end
@@ -1047,11 +1049,11 @@ function atroxArenaViewer:ARENA_OPPONENT_UPDATE(event, unit, type)
 			local key, player = M:updateMatchPlayers(2, unit)
 			self:sendPlayerInfo(key, player)
 			
-			--self:ScheduleTimer("initArenaMatchUnits", AAV_INITOFFTIME, {unit, 2})
+			self:ScheduleTimer("initArenaMatchUnits", AAV_INITOFFTIME, {unit, 2})
 			--self:initArenaMatchUnits({unit, 2})
 		else
 			-- if character vanishes and reappears
-			--self:initArenaMatchUnits({unit, 2})
+			self:initArenaMatchUnits({unit, 2})
 			self:createMessage(self:getDiffTime(), "18," .. u .. ",2")
 		end
 		
@@ -1468,7 +1470,7 @@ function atroxArenaViewer:executeMatchData(tick, data)
 	
 	-- init
 	if (t == 0) then
-		
+
 		T:setBar(tonumber(data[3]), tonumber(data[4]))
 		T:setMaxBar(tonumber(data[3]), tonumber(data[5]))
 		--[[
@@ -1496,10 +1498,11 @@ function atroxArenaViewer:executeMatchData(tick, data)
 	-- current HP
 	elseif (t == 1) then
 		T:setBar(tonumber(data[3]), tonumber(data[4]))
-		
+
 	-- max HP
 	elseif (t == 2) then
 		T:setMaxBar(tonumber(data[3]), tonumber(data[4]))
+
 		
 	-- damage
 	elseif (t == 3 or t == 4 or t == 5 or t == 6) then	

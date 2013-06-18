@@ -56,6 +56,7 @@ L.ARENA_BLADEEDGE				= "Blade's Edge Arena"
 L.ARENA_DALARAN					= "Dalaran Arena"
 L.ARENA_VALOR					= "The Ring of Valor"
 L.ARENA_TOLVIR					= "Tol'viron Arena"
+L.ARENA_PEAK					= "Tiger's Peak"
 
 L.DETAIL_DAMAGEDONE				= "Damage\nDone"
 L.DETAIL_HIGHDAMAGE				= "Highest\nDamage"
