@@ -1,12 +1,13 @@
 ## Title: AAV - atrox Arena Viewer
 ## Author: zwacky
-## Interface: 30300
+## Interface: 50300
 ## SavedVariables: atroxArenaViewerData
 ## Notes: record and view arena replays.
 
 lib\LibStub-1.0\LibStub-1.0.xml
 lib\CallbackHandler-1.0\CallbackHandler-1.0.xml
 lib\AceAddon-3.0\AceAddon-3.0.xml
+lib\AceGUI-3.0\AceGUI-3.0.xml
 lib\AceConfig-3.0\AceConfig-3.0.xml
 lib\AceTimer-3.0\AceTimer-3.0.xml
 lib\AceEvent-3.0\AceEvent-3.0.xml
