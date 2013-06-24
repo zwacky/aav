@@ -50,6 +50,7 @@ L.CONNECT_NEW_SPECTATOR			= "Nouveau spectateur connecté :"
 L.CONNECT_CONNECTED_TO			= "connecté à "
 L.CONNECT_WAITING_DATA			= "En attente de données."
 
+L.ARENA_UNKNOWN					= "Inconnu"
 L.ARENA_NAGRAND					= "Arène de Nagrand"
 L.ARENA_LORDAERON				= "Ruines de Lordaeron"
 L.ARENA_BLADEEDGE				= "Arène des Tranchantes"

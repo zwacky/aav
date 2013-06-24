@@ -105,7 +105,7 @@ AAV_CCSKILS = {
 	
 	-- WARRIOR
 	[676]	= 60,	-- Disarm
-	--[[20230]	= 300,	-- Retaliation
+	[20230]	= 300,	-- Retaliation
 	[5246]	= 120,	-- Intimidating Shout
 	[871]	= 300,	-- Shield Wall
 	[18499]	= 30,	-- Berserker Rage
@@ -165,7 +165,7 @@ AAV_CCSKILS = {
 	[49376] = 28,	-- Feral Charge
 	[22570] = 10,	-- Maim
 	[5217]	= 30,	-- Tiger's Fury
-	[]	= ,	-- Incarnation: ...
+	[106731]= 180,	-- Incarnation: ...
 	[740]	= 480,	-- Tranquility
 
 	-- WARLOCK
@@ -236,7 +236,7 @@ AAV_CCSKILS = {
 	[85285] = 10,	-- Rebuke
 	[85696] = 120,	-- Zealotry
 	[86150] = 300,	-- Guardian of Ancient Kings
-	[]	= ,	-- Blinding Light
+	[115750]= 120,	-- Blinding Light
 	
 	-- HUNTER
 	[781]	= 20,	-- Disengage
