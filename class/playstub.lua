@@ -434,15 +434,13 @@ end
 -- starts or stops the timer.
 -- @param value operation
 function AAV_PlayStub:handleTimer(value)
-	if (value == "stop" and atroxArenaViewer:TimeLeft(timer)) then
+	if (value == "stop" and timer and atroxArenaViewer:TimeLeft(timer)) then
 		atroxArenaViewer:CancelTimer(timer)
 		timer = nil
-	elseif (value == "start" and not atroxArenaViewer:TimeLeft(timer)) then
+	elseif (value == "start" and (not timer or (timer and not atroxArenaViewer:TimeLeft(timer)))) then
 		timer = atroxArenaViewer:ScheduleRepeatingTimer("evaluateMatchData", atroxArenaViewerData.defaults.profile.update)
 	end
 end
-
-
 
 ----
 -- after a seeker jump the values of the entities must be readjusted.
