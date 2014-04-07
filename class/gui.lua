@@ -12,13 +12,13 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 	
 	local o = CreateFrame("Frame", "AAVRoot", UIParent)
 	o:SetFrameStrata("HIGH")
-	o:SetWidth(560)
+	o:SetWidth(650)
 	o:SetPoint("Center", 0, 0)
 	self:setPlayerFrameSize(o, bracket)
 	
 	local f = CreateFrame("Frame", "$parentPlayer", o)
 	f:SetFrameStrata("HIGH")
-	f:SetWidth(560)
+	f:SetWidth(650)
 	f:SetPoint("TOPLEFT", o, "TOPLEFT", 0, 0)
 	
 	self:setPlayerFrameSize(f, bracket)
@@ -101,7 +101,7 @@ function AAV_Gui:createEntityBar(parent, v, y)
 	local anchor, offx, manauser
 	
 	if (v.team==1) then anchor = "TOPLEFT" else anchor = "TOPRIGHT" end
-	if (v.team==1) then offx = 55 else offx = 325 end
+	if (v.team==1) then offx = 85 else offx = 355 end
 	
 	manauser = AAV_Util:determineManaUser(v.class)
 	
@@ -275,7 +275,7 @@ function AAV_Gui:createSeekerBar(parent, elapsed)
 	
 	local f = CreateFrame("Frame", "$parentSeekerBarBack", parent)
 	--f:SetFrameStrata("LOW")
-	f:SetWidth(435)
+	f:SetWidth(500)
 	f:SetHeight(12)
 	
 	local t = f:CreateTexture(nil)
@@ -378,7 +378,7 @@ function AAV_Gui:createStatsFrame(parent)
 	local hdmg = stats:CreateFontString("$parentDamageDone", "ARTWORK", "GameFontNormal")
 	hdmg:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
 	hdmg:SetJustifyH("CENTER")
-	hdmg:SetPoint("TOPLEFT", ddone, 70, 0)
+	hdmg:SetPoint("TOPLEFT", ddone, 80, 0)
 	hdmg:SetText(L.DETAIL_HIGHDAMAGE)
 	--hdmg:SetTextColor()
 	hdmg:Show()
@@ -386,7 +386,7 @@ function AAV_Gui:createStatsFrame(parent)
 	local hdone = stats:CreateFontString("$parentDamageDone", "ARTWORK", "GameFontNormal")
 	hdone:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
 	hdone:SetJustifyH("CENTER")
-	hdone:SetPoint("TOPLEFT", hdmg, 70, 0)
+	hdone:SetPoint("TOPLEFT", hdmg, 115, 0) 
 	hdone:SetText(L.DETAIL_HEALDONE)
 	--hdone:SetTextColor()
 	hdone:Show()
@@ -447,7 +447,7 @@ function AAV_Gui:createDetailEntry(parent, posY, i, team)
 	local entry = CreateFrame("Frame", "$parentEntry", parent)
 	entry:SetHeight(AAV_DETAIL_ENTRYHEIGHT)
 	entry:SetWidth(AAV_DETAIL_ENTRYWIDTH)
-	entry:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, -35 - posY - (team * 55) - (25 * i))
+	entry:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, -35 - posY - (team * 55) - (35 * i))
 	
 	local icon = CreateFrame("Frame", "$parentIcon", entry)
 	icon:SetWidth(20)
@@ -479,14 +479,14 @@ function AAV_Gui:createDetailEntry(parent, posY, i, team)
 	hd:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
 	hd:SetJustifyH("LEFT")
 	hd:SetParent(entry)
-	hd:SetPoint("BOTTOMLEFT", dd, 70, 0)
+	hd:SetPoint("BOTTOMLEFT", dd, 80, 0)
 	hd:SetTextColor(1, 1, 1)
 	
 	local h = parent:CreateFontString("$parentHeal", "ARTWORK", "GameFontNormal")
 	h:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
 	h:SetJustifyH("LEFT")
 	h:SetParent(entry)
-	h:SetPoint("BOTTOMLEFT", hd, 70, 0)
+	h:SetPoint("BOTTOMLEFT", hd, 115, 0)
 	h:SetTextColor(1, 1, 1)
 	
 	local rc = parent:CreateFontString("$parentRating", "ARTWORK", "GameFontNormal")
