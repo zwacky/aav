@@ -113,6 +113,7 @@ function AAV_MatchStub:addDude(key, dude)
 	_, self.combatans.dudes[key].race = dude.race
 	self.combatans.dudes[key].team = dude.team
 	self.combatans.dudes[key].player = dude.player
+	self.combatans.dudes[key].spec = dude.spec
 	self.combatans.dudes[key].ID = dude.ID
 	self.combatans.dudes[key].mana = dude.mana
 	self.combatans.dudes[key].starthpmax = dude.starthpmax
@@ -257,7 +258,8 @@ end
 -- @param healingDone
 -- @param personalRatingChange
 -- @param mmr
-function AAV_MatchStub:setPlayer(guids, name, rating, damageDone, healingDone, personalRatingChange, mmr)
+-- @param spec
+function AAV_MatchStub:setPlayer(guids, name, rating, damageDone, healingDone, personalRatingChange, mmr, spec)
 	if( self:getNametoGUID(name) == nil ) then  --someone of your party already left
 		guid = guids[name]
 	else
@@ -269,6 +271,22 @@ function AAV_MatchStub:setPlayer(guids, name, rating, damageDone, healingDone, p
 	self.combatans.dudes[guid].hdone = healingDone
 	self.combatans.dudes[guid].ratingChange = personalRatingChange
 	self.combatans.dudes[guid].mmr = mmr
+	self.combatans.dudes[guid].spec = spec
+end
+
+----
+-- finds the spec of the arenaOpponent 1-5, corresponding to unit arena1 - arena5
+-- @param guid
+-- @param opponentNumber
+function AAV_MatchStub:SetOpponentSpec(guid, opponentNumber)
+	if(self.combatans.dudes[guid].spec == nil or strlen(self.combatans.dudes[guid].spec) == 0) then
+		local specID = GetArenaOpponentSpec(opponentNumber)
+		local _, specName = GetSpecializationInfoByID(specID)
+		if(specName) then 
+			--print("[debug] From M:SetOpponentSpec Update: " .. opponentNumber .. " spec set to " .. specName)
+			self.combatans.dudes[guid].spec = specName
+		end
+	end
 end
 
 ----

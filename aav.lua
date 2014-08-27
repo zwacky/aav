@@ -155,6 +155,7 @@ function atroxArenaViewer:OnInitialize()
 				healthdisplay = 3, -- deficit percentage
 				shortauras = true, -- don't exceed debuff buff bar
 				uniquecolor = false, -- use class color as hp bar
+				showBySpec = true, -- show the matchesTable with specs instead of names
 			}
 		}
 	}
@@ -170,6 +171,7 @@ function atroxArenaViewer:OnInitialize()
 		interval = 0.1,
 		update = 0.1,
 		communication = "GUILD",
+		showBySpec = true,
 	}
     
     local minimap = AAV_Gui:createMinimapIcon(self)
@@ -633,18 +635,29 @@ function atroxArenaViewer:UPDATE_BATTLEFIELD_STATUS(event, status)
 			local rating = 0
 			
 			for j=1, arenaPlayers do
-				local name, killingBlows, _, _, _, faction, _, _, classToken, damageDone, healingDone, personalRating, personalRatingChange, _, _, _ = GetBattlefieldScore(j); -- http://wowprogramming.com/docs/api/GetBattlefieldScore
+				local name, killingBlows, _, _, _, faction, _, _, classToken, damageDone, healingDone, personalRating, personalRatingChange, _, _, specName = GetBattlefieldScore(j); -- http://wowprogramming.com/docs/api/GetBattlefieldScore
 				name = self:removeServerName(name)
-
-				if( name == playerName ) then -- we can only know the rating of the streamer
-					rating, _, _, _, _, _, _, _ = GetPersonalRatedInfo( bracketIndex[T:getCurrentBracket()])
+				if (name == playerName) then -- we can only know the rating of the streamer
+					local groupNum = max(GetNumGroupMembers())
+					if(M and bracketIndex[M.bracket]) then 
+						rating = GetPersonalRatedInfo(bracketIndex[M.bracket])
+					elseif (bracketIndex[groupNum]) then -- Called if M gives a bad value, the preferred method in gladius
+						rating = GetPersonalRatedInfo(bracketIndex[groupNum])
+					else
+						local mpla = ceil(arenaPlayers/2)
+						if(bracketIndex[mpla]) then -- Not enough people joined on either team, one more attempt to guess the bracket
+							rating = GetPersonalRatedInfo(bracketIndex[mpla])
+						else
+							rating = "0"
+						end
+					end
 				else
 					rating = "0"
-				end				
-				
+				end						
+					
 				if (faction == 0) then mmr = greenBeforeMMR	else mmr = goldBeforeMMR end		
-				
-				M:setPlayer(guids,name, rating, damageDone, healingDone, personalRatingChange, mmr)
+
+				M:setPlayer(guids,name, rating, damageDone, healingDone, personalRatingChange, mmr, specName)
 			end
 			
 			for i=0,1 do			
@@ -692,6 +705,7 @@ function atroxArenaViewer:CHAT_MSG_BG_SYSTEM_NEUTRAL(event, msg)
 			self:sendNewMatchInfo() -- match starts
 			
 			guids = {} -- reset guids
+			NotifyInspect("raid" .. 1) -- triggers INSPECT_READY which will get the specs of all party members.
 			for i = 1, 5 do
 				if (UnitExists("raid" .. i)) then
 					local name, _ = UnitName("raid" .. i)					
@@ -777,6 +791,29 @@ function atroxArenaViewer:CHAT_MSG_BG_SYSTEM_NEUTRAL(event, msg)
 	end
 end
 
+---
+-- Sets the specs for all party members. Only added as party specs wouldn't be set if the player left the game prematurely (eg if there was an obvious loss).
+-- @param event
+-- @param guid Guid used to find who to inspect
+-- @param other
+function atroxArenaViewer:INSPECT_READY(event, guid, other)
+	if(M and M:getDudesData()[guid]) then
+		for i = 1, 5 do
+			if (UnitExists("raid" .. i)) then
+				if(guid == UnitGUID("raid" .. i)) then --should only happen once
+					if(M:getDudesData()[guid].spec == nil or strlen(M:getDudesData()[guid].spec) == 0) then
+						local specID = GetInspectSpecialization("raid" .. i)
+						local _, specName = GetSpecializationInfoByID(specID)
+						if(specName) then 
+							M.combatans.dudes[guid].spec = specName
+						end
+					end
+					if(i<5) then NotifyInspect("raid" .. i+1) end
+				end
+			end
+		end
+	end
+end
 
 function atroxArenaViewer:ZONE_CHANGED_NEW_AREA(event, unit)
 	
@@ -784,6 +821,7 @@ function atroxArenaViewer:ZONE_CHANGED_NEW_AREA(event, unit)
 	if (GetZonePVPInfo() == "arena") then
 	
 		CombatLogClearEntries() -- fixes combat log parse overflow problem		
+		self:RegisterEvent("INSPECT_READY")
 		self:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
 		
 		atroxArenaViewerData.current.inArena = true
@@ -797,6 +835,7 @@ function atroxArenaViewer:ZONE_CHANGED_NEW_AREA(event, unit)
 			
 			self:handleEvents("unregister")
 			self:handleQueueTimer("stop")
+			self:UnregisterEvent("INSPECT_READY")
 			self:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
 			
 			if (atroxArenaViewerData.current.record) then
@@ -1057,6 +1096,10 @@ function atroxArenaViewer:UNIT_AURA(event, unit)
 	
 end
 
+----
+-- Called when a name update is available, will set the name and spec
+-- @param event
+-- @param unit arena1, arena2...
 function atroxArenaViewer:UNIT_NAME_UPDATE(event, unit)
 	if (UnitIsPlayer(unit)) then
 		if (not M) then return end
@@ -1064,6 +1107,10 @@ function atroxArenaViewer:UNIT_NAME_UPDATE(event, unit)
 		
 		M:getDudesData()[sourceGUID].name = UnitName(unit)
 		self:sendPlayerInfo(sourceGUID, M:getDudesData()[sourceGUID])
+		
+		if(strsub(unit, 1, strlen(unit)-1) ~= "raid") then
+			M:SetOpponentSpec(sourceGUID, strsub(unit, strlen(unit)))
+		end
 	end
 end
 
@@ -1074,6 +1121,9 @@ function atroxArenaViewer:ARENA_OPPONENT_UPDATE(event, unit, type)
 		if (not u) then
 			local key, player = M:updateMatchPlayers(2, unit)
 			self:sendPlayerInfo(key, player)
+			if (UnitIsPlayer(unit)) then
+				M:SetOpponentSpec(UnitGUID(unit), strsub(unit, strlen(unit)))
+			end
 			
 			--self:ScheduleTimer("initArenaMatchUnits", AAV_INITOFFTIME, {unit, 2})
 			--self:initArenaMatchUnits({unit, 2})
