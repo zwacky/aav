@@ -788,24 +788,15 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			info.checked	= nil
 			
 			-- PLAY MATCH
-			reset(info)
+--[[			reset(info)
 			info.text       = "Play match"
 			info.notCheckable = true
 			info.notClickable = false
 			info.hasArrow	= true
 			info.func		= nil
 			
-			UIDropDownMenu_AddButton(info, level)
+			UIDropDownMenu_AddButton(info, level)]]--
 			
-			-- DELETE MATCH
-			reset(info)
-			info.text       = "Delete match"
-			info.notCheckable = true
-			info.notClickable = false
-			info.hasArrow	= true
-			info.func		= nil
-			
-			UIDropDownMenu_AddButton(info, level)
 			
 			-- CONNECT
 			reset(info)
@@ -826,6 +817,15 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			
 			UIDropDownMenu_AddButton(info, level)
 			
+			-- DELETE
+			reset(info)
+			info.text       = "Delete"
+			info.notCheckable = true
+			info.notClickable = false
+			info.hasArrow	= true
+			info.func		= nil
+			UIDropDownMenu_AddButton(info, level)
+			
 			-- EXPORT MATCH
 			--[[
 			reset(info)
@@ -841,7 +841,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 		
 		if (level == 2) then
 			
-			if (UIDROPDOWNMENU_MENU_VALUE == "Play match") then
+--[[			if (UIDROPDOWNMENU_MENU_VALUE == "Play match") then
 				-- PLAY MATCH
 				
 				if (atroxArenaViewerData.data) then
@@ -868,7 +868,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					UIDropDownMenu_AddButton(info, level)
 				end
 				
-				--[[
+
 				if (atroxArenaViewerData.data) then
 					for k,v in pairs(atroxArenaViewerData.data) do
 						info.text = k .. " - " .. v.map .. " (" .. v.startTime .. ")"
@@ -891,32 +891,23 @@ function AAV_Gui:createMinimapIcon(parent, player)
 				--]]
 				
 				
-			elseif (UIDROPDOWNMENU_MENU_VALUE == "Delete match") then
-				-- DELETE MATCH
-				
-				if (atroxArenaViewerData.data) then
-					
-					for i=1, math.ceil(#atroxArenaViewerData.data / 20) do
-						reset(info)
-						info.text = "Delete Match " .. ((i-1) * 20)+1 .. "-" .. (i * 20)
-						info.notCheckable = true
-						info.notClickable = false
-						info.hasArrow = true
-						info.func = nil
-						
-						UIDropDownMenu_AddButton(info, level)
+			if (UIDROPDOWNMENU_MENU_VALUE == "Delete") then
+				--DELETE
+				reset(info)
+				info.text = "Delete All"
+				info.notCheckable = true
+				info.notClickable = false
+				info.hasArrow = false
+				info.func = function()
+					while(#atroxArenaViewerData.data>0) do
+						atroxArenaViewer:deleteMatch(#atroxArenaViewerData.data)					
 					end
-					
-				else
-					reset(info)
-					info.text = "none found"
-					info.notCheckable = true
-					info.notClickable = true
-					info.hasArrow = false
-					info.func = nil
-					
-					UIDropDownMenu_AddButton(info, level)
+					AAV_TableGui:refreshMatchesFrame()
 				end
+				
+				UIDropDownMenu_AddButton(info, level)
+					
+			
 				
 				--[[
 				if (atroxArenaViewerData.data) then
@@ -1210,7 +1201,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			
 			for i=1, math.ceil(#atroxArenaViewerData.data / 20) do
 				
-				if (UIDROPDOWNMENU_MENU_VALUE == "Play Match " .. ((i-1) * 20)+1 .. "-" .. (i * 20)) then
+--[[				if (UIDROPDOWNMENU_MENU_VALUE == "Play Match " .. ((i-1) * 20)+1 .. "-" .. (i * 20)) then
 					
 					if (atroxArenaViewerData.data) then
 						for j=((i-1)*20)+1, (i*20) do
@@ -1218,9 +1209,9 @@ function AAV_Gui:createMinimapIcon(parent, player)
 							reset(info)
 							local mapname = ""
 							if (type(atroxArenaViewerData.data[j]["map"])=="number") then
-								if (AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]) then
-									mapname = AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]
-								else
+								if (AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]--) then
+--[[									mapname = AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]
+--[[								else
 									mapname = "Unknown"
 								end
 							else
@@ -1255,9 +1246,9 @@ function AAV_Gui:createMinimapIcon(parent, player)
 							reset(info)
 							local mapname = ""
 							if (type(atroxArenaViewerData.data[j]["map"])=="number") then
-								if (AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]) then
-									mapname = AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]
-								else
+								if (AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]--) then
+--[[									mapname = AAV_COMM_MAPS[atroxArenaViewerData.data[j]["map"]]
+--[[								else
 									mapname = "Unknown"
 								end
 							else
@@ -1291,7 +1282,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 						UIDropDownMenu_AddButton(info, level)
 					end
 					
-				end
+				end]]--
 				
 				if (UIDROPDOWNMENU_MENU_VALUE == "Export Match " .. ((i-1) * 20)+1 .. "-" .. (i * 20)) then
 					
@@ -1328,8 +1319,16 @@ function AAV_Gui:createMinimapIcon(parent, player)
 	
     --ToggleDropDownMenu(1, nil, TomTomPingMenu, "cursor", 0, 0);
 	
-	button:SetScript("OnClick", function(button)
-		ToggleDropDownMenu(1, nil, menu, button, 10, 10);
+	button:SetScript("OnClick", function(button, clickType)
+		if(clickType == "LeftButton") then
+			if(AAV_TableGui:isMatchesFrameShowing()) then
+				AAV_TableGui:hideMatchesFrame()
+			else
+				AAV_TableGui:showMatchesFrame()
+			end
+		elseif (clickType == "RightButton") then
+			ToggleDropDownMenu(1, nil, menu, button, 10, 10);
+		end
 	end)
 	
 	return button
