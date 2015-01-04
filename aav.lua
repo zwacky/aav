@@ -1179,8 +1179,8 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	if (type == "SWING_DAMAGE") then
 		eventType = 3
 		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = select(1, ...)
-		if (not critical) then critical = 0 end
-		if (not absorbed) then absorbed = 0 end
+		critical = critical and 1 or 0
+		absorbed = absorbed and 1 or 0
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
 			M:addStats(1, sourceGUID, amount + absorbed, "Melee")
@@ -1188,8 +1188,8 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	elseif (type == "SPELL_DAMAGE") then
 		eventType = 4
 		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = select(1, ...)
-		if (not critical) then critical = 0 end
-		if (not absorbed) then absorbed = 0 end
+		critical = critical and 1 or 0
+		absorbed = absorbed and 1 or 0
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
 			M:addStats(1, sourceGUID, amount + absorbed, spellName)
@@ -1197,8 +1197,8 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	elseif (type == "SPELL_PERIODIC_DAMAGE") then
 		eventType = 5
 		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = select(1, ...)
-		if (not critical) then critical = 0 end
-		if (not absorbed) then absorbed = 0 end
+		critical = critical and 1 or 0
+		absorbed = absorbed and 1 or 0
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
 			M:addStats(1, sourceGUID, amount + absorbed, spellName)
@@ -1206,8 +1206,8 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	elseif (type == "RANGE_DAMAGE") then
 		eventType = 6
 		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = select(1, ...)
-		if (not critical) then critical = 0 end
-		if (not absorbed) then absorbed = 0 end
+		critical = critical and 1 or 0
+		absorbed = absorbed and 1 or 0
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
 			M:addStats(1, sourceGUID, amount + absorbed, spellName)
@@ -1215,7 +1215,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	elseif (type == "SPELL_HEAL") then
 		eventType = 7
 		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, overkill, critical, _= select(1, ...)
-		if (not critical) then critical = 0 end
+		critical = critical and 1 or 0
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
 			M:addStats(2, sourceGUID, amount - overkill, nil)
@@ -1223,7 +1223,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	elseif (type == "SPELL_PERIODIC_HEAL") then
 		eventType = 8
 		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, overkill, critical, _= select(1, ...)
-		if (not critical) then critical = 0 end
+		critical = critical and 1 or 0
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
 			M:addStats(2, sourceGUID, amount - overkill, nil)
