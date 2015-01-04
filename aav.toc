@@ -4,8 +4,8 @@
 ## SavedVariables: atroxArenaViewerData
 ## Notes: record and view arena replays.
 
-lib\lib-st\lib-st.xml
 lib\LibStub-1.0\LibStub-1.0.xml
+lib\lib-st\lib-st.xml
 lib\CallbackHandler-1.0\CallbackHandler-1.0.xml
 lib\AceAddon-3.0\AceAddon-3.0.xml
 lib\AceGUI-3.0\AceGUI-3.0.xml
