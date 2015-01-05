@@ -185,14 +185,29 @@ function AAV_TableGui:fillMatchesTable()
 			end
 			data[row].cols = {};
 			
-			local startTime, elapsedStr, mapname, matchUp, matchResult, teamOneRating = self:determineMatchSummary(row)
-			
-			data[row].cols[1] = { ["value"] = startTime };
-			data[row].cols[2] = { ["value"] = elapsedStr };
-			data[row].cols[3] = { ["value"] = mapname };
-			data[row].cols[4] = { ["value"] = matchUp };
-			data[row].cols[5] = { ["value"] = matchResult };
-			data[row].cols[6] = { ["value"] = teamOneRating };
+			--local startTime, elapsedStr, mapname, matchUp, matchResult, teamOneRating = self:determineMatchSummary(row)
+
+			-- start time
+			data[row].cols[1] = { ["value"] = atroxArenaViewerData.data[row]["startTime"] };
+
+			-- elapsed time
+			local elapsed = atroxArenaViewerData.data[row].elapsed
+			data[row].cols[2] = { ["value"] = string.format("%.2d : %.2d", math.floor(elapsed / 60), elapsed % 60) };
+
+			-- map name
+			data[row].cols[3] = { ["value"] = AAV_COMM_MAPS[atroxArenaViewerData.data[row]["map"]] };
+
+			-- match up against
+			data[row].cols[4] = { ["value"] = "vs       " .. atroxArenaViewerData.data[row].teams[1].name };
+
+			-- win or loss
+			print(atroxArenaViewerData.data[row].result)
+			data[row].cols[5] = { ["value"] = atroxArenaViewerData.data[row]["result"] == 0 and "LOSS" or "WIN" };
+
+			-- rating
+			data[row].cols[6] = { ["value"] = atroxArenaViewerData.data[row]["teams"][1]["rating"] };
+
+			-- delete
 			data[row].cols[7] = { ["value"] = "DELETE" };
 			
 			if (matchResult and matchResult == "Won") then
@@ -283,6 +298,8 @@ function AAV_TableGui:determineMatchSummary(num)
 		end
 	end
 	
+	--[[
+	-- better if match up only contains team names
 	sortNames = function(aTeam) -- Sorts the way the specs/names are displayed, so that DPS comes before healers, then alphabetically sorts through class, spec, name, and guid.
 		local keys, sortedNames = {}, ""
 		for k in pairs(aTeam) do keys[#keys+1] = k end
@@ -302,6 +319,7 @@ function AAV_TableGui:determineMatchSummary(num)
 	end
 
 	matchUp = sortNames(teamOne) .. "  vs  " .. sortNames(teamTwo)
+	--]]
 
 	return startTime, elapsedStr, mapname, matchUp or "?", matchResult or "?", teamOneRating
 end
