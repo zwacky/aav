@@ -54,7 +54,7 @@ end
 function AAV_MatchStub:setBracket()
 	local bracket = 0
 	for k,v in pairs(self.combatans.dudes) do
-		if (v.team == 1 and v.player == 1) then
+		if (v.team == 1 and v.player == true) then
 			bracket = bracket + 1
 		end
 	end
@@ -230,7 +230,7 @@ function AAV_MatchStub:updateMatchPlayers(team, unit)
 		end
 	end
 	max = max + 1
-	
+
 	return self:newDude(unit, team, max)
 	
 end

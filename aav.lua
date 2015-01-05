@@ -37,7 +37,7 @@ local message = {
 -------------------------
 AAV_VERSIONMAJOR = 1
 AAV_VERSIONMINOR = 2
-AAV_VERSIONBUGFIX = 9
+AAV_VERSIONBUGFIX = 10
 AAV_UPDATESPEED = 60
 AAV_AURAFULLINDEXSTEP = 1
 AAV_INITOFFTIME = 0.5
@@ -714,7 +714,7 @@ function atroxArenaViewer:CHAT_MSG_BG_SYSTEM_NEUTRAL(event, msg)
 					self:sendPlayerInfo(key, player)
 				end
 			end
-			
+
 			M:setBracket() -- sets the bracket size according to dudes data
 			
 			self:handleEvents("register")

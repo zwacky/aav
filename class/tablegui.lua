@@ -177,16 +177,12 @@ function AAV_TableGui:fillMatchesTable()
 		local deleteColor  = { ["r"] = 1.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 1.0 };
 		local wonMatchColor = { ["r"] = 0.00, ["g"] = 1.0, ["b"] = 0.00, ["a"] = 1.0 };
 		local lostMatchColor = { ["r"] = 1.0, ["g"] = 0.00, ["b"] = 0.00, ["a"] = 1.0 };
-		local teamOne = {}
-		local teamTwo = {}
 		for row = 1, #atroxArenaViewerData.data do
 			if not data[row] then
 				data[row] = {};
 			end
 			data[row].cols = {};
 			
-			--local startTime, elapsedStr, mapname, matchUp, matchResult, teamOneRating = self:determineMatchSummary(row)
-
 			-- start time
 			data[row].cols[1] = { ["value"] = atroxArenaViewerData.data[row]["startTime"] };
 
@@ -201,7 +197,6 @@ function AAV_TableGui:fillMatchesTable()
 			data[row].cols[4] = { ["value"] = "vs       " .. atroxArenaViewerData.data[row].teams[1].name };
 
 			-- win or loss
-			print(atroxArenaViewerData.data[row].result)
 			data[row].cols[5] = { ["value"] = atroxArenaViewerData.data[row]["result"] == 0 and "LOSS" or "WIN" };
 
 			-- rating
@@ -209,13 +204,11 @@ function AAV_TableGui:fillMatchesTable()
 
 			-- delete
 			data[row].cols[7] = { ["value"] = "DELETE" };
-			
-			if (matchResult and matchResult == "Won") then
+
+			if (atroxArenaViewerData.data[row]["result"] == 1) then
 				data[row].cols[5].color = wonMatchColor
-				data[row].cols[6].color = wonMatchColor
-			elseif (matchResult and matchResult == "Lost") then
+			elseif (atroxArenaViewerData.data[row]["result"] == 0) then
 				data[row].cols[5].color = lostMatchColor
-				data[row].cols[6].color = lostMatchColor
 			end
 			data[row].cols[7].color = deleteColor
 		end
@@ -228,100 +221,6 @@ function AAV_TableGui:fillMatchesTable()
 	end
 	matchesTable:SetData(data);
 	matchesTable:SortData();
-end
-
----
--- Returns the relavent information for match (num). 
--- @param num The match number.
-function AAV_TableGui:determineMatchSummary(num)
-	local elapsedStr, mapname, teamOneRating, matchUp, matchResult, diff, rating, idSortStr
-	local teamdata = atroxArenaViewerData.data[num]["teams"]
-	local matchdata = atroxArenaViewerData.data[num]["combatans"]["dudes"]
-	local startTime = atroxArenaViewerData.data[num]["startTime"]
-	local elapsed = atroxArenaViewerData.data[num].elapsed
-	local healersList = {a = true, b = true, c = true}
-	
-	formatTime = function(time, s)
-		if(string.len(time)<2) then
-			time = s .. time
-		end
-		return time
-	end
-	
-	elapsedStr = formatTime(math.floor(elapsed/60), "  ") .. " : " .. formatTime(elapsed%60, "0")
-
-	
-	if (type(atroxArenaViewerData.data[num]["map"])=="number") then
-		if (AAV_COMM_MAPS[atroxArenaViewerData.data[num]["map"]]) then
-			mapname = AAV_COMM_MAPS[atroxArenaViewerData.data[num]["map"]]
-		else
-			mapname = "Unknown"
-		end
-	else
-		mapname = atroxArenaViewerData.data[num]["map"]
-	end
-	
-	hasSpec = function(w)
-		return (w.spec ~= nil and strlen(w.spec) > 0)
-	end	
-
-	local teamOne, teamTwo = {}, {}
-	for k ,v in pairs(teamdata) do
-		local team = k+1
-		for c,w in pairs(matchdata) do
-			if (w.player == 1 and w.team == team) then
-				if (w.ratingChange and w.ratingChange >= 0) then diff = "+" .. w.ratingChange else diff = w.ratingChange end
-				if (not w.rating) then rating = "? (" .. diff .. ")" else rating = w.rating .. " (" .. diff .. ")" end
-				if (w.class and hasSpec(w)) then idSortStr = w.class .. w.spec .. w.name .. c elseif (w.class) then idSortStr = w.class .. " " .. w.name .. c else idSortStr = "   " .. w.name .. c end
-				if(w.class and hasSpec(w)) then
-					idSortStr = specRoleTable[w.class .. " " .. w.spec] .. idSortStr
-				elseif (w.ddone > w.hdone) then 
-					idSortStr = "DAMAGER".. idSortStr 
-				else 
-					idSortStr = "HEALER" .. idSortStr
-				end
-				if (team == 1) then
-					teamOne[idSortStr] = w
-					if (not matchResult and w.ratingChange and w.ratingChange ~= 0) then 
-						if(w.ratingChange >=0) then matchResult = "Won" else matchResult = "Lost" end
-					end
-					if (w.rating and w.rating ~= "0") then
-						teamOneRating = rating
-					end
-				elseif (team == 2) then
-					teamTwo[idSortStr] = w
-					if (not matchResult and w.ratingChange and w.ratingChange ~= 0) then 
-						if(w.ratingChange <=0) then matchResult = "Won" else matchResult = "Lost" end
-					end
-				end
-			end
-		end
-	end
-	
-	--[[
-	-- better if match up only contains team names
-	sortNames = function(aTeam) -- Sorts the way the specs/names are displayed, so that DPS comes before healers, then alphabetically sorts through class, spec, name, and guid.
-		local keys, sortedNames = {}, ""
-		for k in pairs(aTeam) do keys[#keys+1] = k end
-		table.sort(keys)
-		for k, v in pairs(keys) do
-			local w, icon = aTeam[v], nil
-			if (atroxArenaViewerData.current.showBySpec and w.class and hasSpec(w)) then 
-				icon = specIconTable[w.class .. " " .. w.spec]
-			elseif(w.class) then
-				icon = AAV_TableGui:getClassColoredName(w)
-			else
-				icon = w.name
-			end
-			sortedNames = sortedNames .. " " .. icon
-		end
-		return sortedNames
-	end
-
-	matchUp = sortNames(teamOne) .. "  vs  " .. sortNames(teamTwo)
-	--]]
-
-	return startTime, elapsedStr, mapname, matchUp or "?", matchResult or "?", teamOneRating
 end
 
 ----
