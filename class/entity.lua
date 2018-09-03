@@ -301,7 +301,7 @@ end
 -- @param spellid
 -- @param type buff = 1, debuff = 2
 function AAV_PlayerEntity:setAura(aura, spellid, type)
-	local name, rank, icon, _, _, _, _ = GetSpellInfo(spellid)
+	local name, _, icon, _, _, _, _ = GetSpellInfo(spellid)
 	local target, parent
 	
 	if (type == 1) then target = self.buffs parent = self.brange end
@@ -337,11 +337,7 @@ function AAV_PlayerEntity:setAura(aura, spellid, type)
 	aura.frame:SetScript("OnEnter", function(s) 
 		if (s:GetAlpha() > 0) then
 			GameTooltip:SetOwner(s, "ANCHOR_CURSOR", 0, 0)
-			if (rank ~= "") then
-				AAV_Gui:SetGameTooltip(name .. " (" .. rank .. ")", nil, s)
-			else
-				AAV_Gui:SetGameTooltip(name, nil, s)
-			end
+			AAV_Gui:SetGameTooltip(name, nil, s)
 		end
 	end)
 	

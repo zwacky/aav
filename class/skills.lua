@@ -21,7 +21,7 @@ function AAV_UsedSkill:isDead()
 end
 
 function AAV_UsedSkill:setValue(parent, spellid, cast, num, v)
-	local name, rank, icon, cost, isfunnel, ptype, casttime = GetSpellInfo(spellid)
+	local name, _, icon, cost, isfunnel, ptype, casttime = GetSpellInfo(spellid)
 	if (name == nil) then
 		return
 	end
@@ -52,11 +52,7 @@ function AAV_UsedSkill:setValue(parent, spellid, cast, num, v)
 	self.frame:SetScript("OnEnter", function(s) 
 		if (s:GetAlpha() > 0) then
 			GameTooltip:SetOwner(s, "ANCHOR_CURSOR", 0, 0)
-			if (rank ~= "") then
-				AAV_Gui:SetGameTooltip(name .. " (" .. rank .. ")", nil, s)
-			else
-				AAV_Gui:SetGameTooltip(name, nil, s)
-			end
+			AAV_Gui:SetGameTooltip(name, nil, s)
 		end
 	end)
 	self.frame:SetScript("OnLeave", function(s) 

@@ -36,8 +36,8 @@ local message = {
 -- GLOBALS
 -------------------------
 AAV_VERSIONMAJOR = 1
-AAV_VERSIONMINOR = 2
-AAV_VERSIONBUGFIX = 10
+AAV_VERSIONMINOR = 3
+AAV_VERSIONBUGFIX = 0
 AAV_UPDATESPEED = 60
 AAV_AURAFULLINDEXSTEP = 1
 AAV_INITOFFTIME = 0.5
@@ -186,8 +186,8 @@ end
 
 function atroxArenaViewer:OnEnable()
 
-	RegisterAddonMessagePrefix(AAV_COMM_LOOKUPBROADCAST)
-    RegisterAddonMessagePrefix(AAV_COMM_HANDLEMATCHDATA)
+	C_ChatInfo.RegisterAddonMessagePrefix(AAV_COMM_LOOKUPBROADCAST)
+    C_ChatInfo.RegisterAddonMessagePrefix(AAV_COMM_HANDLEMATCHDATA)
 
     self:RegisterComm(AAV_COMM_LOOKUPBROADCAST, "lookupBroadcast")
     self:RegisterComm(AAV_COMM_HANDLEMATCHDATA, "handleMatchData")
@@ -585,6 +585,9 @@ end
 ----
 -- status 1 = in queue, in arena: message board; 2 = entered
 function atroxArenaViewer:UPDATE_BATTLEFIELD_STATUS(event, status)
+
+	print("update battle field status")
+	print(status)
 	
 	if (atroxArenaViewerData.current.broadcast or atroxArenaViewerData.current.record and M) then
 		--[[
@@ -815,8 +818,7 @@ function atroxArenaViewer:INSPECT_READY(event, guid, other)
 	end
 end
 
-function atroxArenaViewer:ZONE_CHANGED_NEW_AREA(event, unit)
-	
+function atroxArenaViewer:ZONE_CHANGED_NEW_AREA(event, unit)	
 	
 	if (GetZonePVPInfo() == "arena") then
 	
@@ -874,7 +876,7 @@ function atroxArenaViewer:handleEvents(val)
 	if (val == "register") then
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		self:RegisterEvent("UNIT_HEALTH")
-		self:RegisterEvent("UNIT_POWER") 
+		self:RegisterEvent("UNIT_POWER_UPDATE") 
 		self:RegisterEvent("ARENA_OPPONENT_UPDATE")
 		--self:RegisterEvent("UPDATE_BATTLEFIELD_SCORE")
 		self:RegisterEvent("UNIT_NAME_UPDATE")
@@ -886,7 +888,7 @@ function atroxArenaViewer:handleEvents(val)
 	elseif (val == "unregister") then
 		self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		self:UnregisterEvent("UNIT_HEALTH")
-		self:UnregisterEvent("UNIT_POWER") 
+		self:UnregisterEvent("UNIT_POWER_UPDATE") 
 		self:UnregisterEvent("ARENA_OPPONENT_UPDATE")
 		--self:UnregisterEvent("UPDATE_BATTLEFIELD_SCORE")
 		self:UnregisterEvent("UNIT_NAME_UPDATE")
@@ -1002,15 +1004,15 @@ end
 -- @param unit
 -- @param type resource changed (mana, ragem ...)
 --function atroxArenaViewer:UNIT_MANA(event, unit)
-function atroxArenaViewer:UNIT_POWER(event, unit, type)
+function atroxArenaViewer:UNIT_POWER_UPDATE(event, unit, type)
 	if (type ~= "MANA") then
 		return
 	end
 	
 	local player = M:getDudesData()[UnitGUID(unit)]
-	if (player) then --and (player.mana > (UnitMana(unit)/UnitManaMax(unit))) then
+	if (player) then --and (player.mana > (UnitPower(unit)/UnitPowerMax(unit))) then
 		
-		local mana = math.floor((UnitMana(unit)/UnitManaMax(unit))*100)
+		local mana = math.floor((UnitPower(unit)/UnitPowerMax(unit))*100)
 		if not (mana > player.mana - AAV_MANATRESHOLD and mana < player.mana + AAV_MANATRESHOLD) then
 			player.mana = mana
 			local u = M:getGUIDtoNumber(UnitGUID(unit))
@@ -1048,9 +1050,11 @@ function atroxArenaViewer:UNIT_AURA(event, unit)
 	if (not id) then return end
 	
 	for n = 1, 40 do
-		local _, _, _, _, _, btime, _, _, _, _, bspellid = UnitBuff(unit, n)
-		local _, _, _, _, _, dtime, _, _, _, _, dspellid = UnitDebuff(unit, n)
-		
+		-- local _, _, _, _, _, btime, _, _, _, _, bspellid = UnitBuff(unit, n)
+		-- local _, _, _, _, _, dtime, _, _, _, _, dspellid = UnitDebuff(unit, n)
+		local _, _, _, _, btime, _, _, _, _, bspellid = UnitBuff(unit, n)
+		local _, _, _, _, dtime, _, _, _, _, dspellid = UnitDebuff(unit, n)
+
 		if (not bspellid and not dspellid) then break end
 		
 		if (bspellid) then tempbuffs[bspellid] = true end
@@ -1105,6 +1109,10 @@ function atroxArenaViewer:UNIT_NAME_UPDATE(event, unit)
 		if (not M) then return end
 		local sourceGUID = UnitGUID(unit)
 		
+		print("========")
+		print(sourceGUID)
+		print(unit)
+		print(M:getDudesData())
 		M:getDudesData()[sourceGUID].name = UnitName(unit)
 		self:sendPlayerInfo(sourceGUID, M:getDudesData()[sourceGUID])
 		
@@ -1155,10 +1163,11 @@ end
 
 function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	--local timestamp, type, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical = select(1, ...)
-	local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical
+	--local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical
+	--type, _, sourceGUID, _, _, _, destGUID = select(2, ...)
+
 	local eventType, msg
-	
-	type, _, sourceGUID, _, _, _, destGUID = select(2, ...)
+	local timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = CombatLogGetCurrentEventInfo()
 	
 	local source = M:getGUIDtoNumber(sourceGUID)
 	local dest = M:getGUIDtoNumber(destGUID)
@@ -1178,7 +1187,6 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	
 	if (type == "SWING_DAMAGE") then
 		eventType = 3
-		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = select(1, ...)
 		critical = critical and 1 or 0
 		absorbed = absorbed and 1 or 0
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
@@ -1187,7 +1195,6 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	elseif (type == "SPELL_DAMAGE") then
 		eventType = 4
-		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = select(1, ...)
 		critical = critical and 1 or 0
 		absorbed = absorbed and 1 or 0
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
@@ -1196,7 +1203,6 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	elseif (type == "SPELL_PERIODIC_DAMAGE") then
 		eventType = 5
-		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = select(1, ...)
 		critical = critical and 1 or 0
 		absorbed = absorbed and 1 or 0
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
@@ -1205,7 +1211,6 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	elseif (type == "RANGE_DAMAGE") then
 		eventType = 6
-		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing = select(1, ...)
 		critical = critical and 1 or 0
 		absorbed = absorbed and 1 or 0
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
@@ -1214,7 +1219,6 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	elseif (type == "SPELL_HEAL") then
 		eventType = 7
-		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, overkill, critical, _= select(1, ...)
 		critical = critical and 1 or 0
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
@@ -1222,7 +1226,6 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	elseif (type == "SPELL_PERIODIC_HEAL") then
 		eventType = 8
-		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, overkill, critical, _= select(1, ...)
 		critical = critical and 1 or 0
 		if (source and dest and amount) then -- dont track damage from unknown sources and destinations
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. amount .. "," .. critical)
@@ -1230,7 +1233,6 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	elseif (type == "SPELL_CAST_START") then
 		eventType = 9
-		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool = select(1, ...)
 		if (source) then
 			local target, destTarget = M:getGUIDtoTarget(sourceGUID), ""
 			if (target) then destTarget = M:getGUIDtoNumber(UnitGUID(target .. "target")) end
@@ -1241,7 +1243,6 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	elseif (type == "SPELL_CAST_SUCCESS") then
 		eventType = 10
-		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool = select(1, ...)
 		if (source) then
 			if (not dest) then dest = -1 end
 			local time = 0
@@ -1254,7 +1255,6 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		
 	elseif (type == "SPELL_INTERRUPT") then
 		eventType = 12
-		timestamp, type, _, sourceGUID, sourceName, sourceFlags, _, destGUID, destName, destFlags, _, spellId, spellName, spellSchool, amount, _, _, _ = select(1, ...) -- counteredSpellid, counteredSpellName, counteredSpellSchool
 		if (source and dest) then
 			self:createMessage(self:getDiffTime(), eventType .. "," .. source .. "," .. dest .. "," .. spellId .. "," .. amount)
 		end
@@ -1449,7 +1449,7 @@ function atroxArenaViewer:getSkillLegend(tab)
 	
 	local first = true
 	for k,v in pairs(db) do
-		local name, rank, icon = GetSpellInfo(tonumber(k))
+		local name, _, icon = GetSpellInfo(tonumber(k))
 		icon = string.gsub(string.lower(icon), "interface\\icons\\", "")
 		if (not first) then str = str .. "," end
 		str = str .. '{"id":' .. k .. ',"icon":"' .. icon .. '","name":"' .. name .. '"}'

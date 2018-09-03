@@ -14,14 +14,13 @@ function AAV_Cooldown:new(parent, spellid, duration, entity, entry)
 end
 
 function AAV_Cooldown:setValue(parent, spellid, duration, entity, entry)
-	local name, rank, icon = GetSpellInfo(spellid)
+	local name, _, icon = GetSpellInfo(spellid)
 	
 	self.parent = parent
 	self.spellid = spellid
 	self.duration = duration
 	self.position = 0
 	self.name = name
-	self.rank = rank
 	self.alive = 0
 	self.timer = 0
 	self.dead = false
@@ -42,11 +41,7 @@ function AAV_Cooldown:setValue(parent, spellid, duration, entity, entry)
 	self.icon:SetScript("OnEnter", function(s) 
 		if (s:GetAlpha() > 0) then
 			GameTooltip:SetOwner(s, "ANCHOR_CURSOR", 0, 0)
-			if (rank ~= "") then
-				AAV_Gui:SetGameTooltip(name .. " (" .. rank .. ")", nil, s)
-			else
-				AAV_Gui:SetGameTooltip(name, nil, s)
-			end
+			AAV_Gui:SetGameTooltip(name, nil, s)
 		end
 	end)
 	self.icon:SetScript("OnLeave", function(s) 

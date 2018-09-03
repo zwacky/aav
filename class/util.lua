@@ -453,6 +453,8 @@ function AAV_Util:getTargetColor(data, urgent)
 			return 0.78, 0.61, 0.43
 		elseif (data.class == "MONK") then
 			return 0.2, 1.00, 0.00
+		elseif (data.class == "DEMONHUNTER") then
+			return 0.64, 0.19, 0.79
 		end
 		
 	else
@@ -478,6 +480,8 @@ function AAV_Util:getTargetColor(data, urgent)
 		elseif (id == 9) then
 			return 0.3450980392156863, 0.196078431372549, 0.0235294117647059
 		elseif (id == 10) then
+			return 0.3450980392156863, 0.196078431372549, 0.0235294117647059
+		elseif (id == 11) then
 			return 0.3450980392156863, 0.196078431372549, 0.0235294117647059
 		end
 	end
